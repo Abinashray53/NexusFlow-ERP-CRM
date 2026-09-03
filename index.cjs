@@ -1,321 +1,302 @@
 'use strict';
 
-const vite = require('vite');
-const fs = require('node:fs');
-const path = require('node:path');
-const node_module = require('node:module');
-
-var _documentCurrentScript = typeof document !== 'undefined' ? document.currentScript : null;
-function _interopDefaultCompat (e) { return e && typeof e === 'object' && 'default' in e ? e.default : e; }
-
-const fs__default = /*#__PURE__*/_interopDefaultCompat(fs);
-const path__default = /*#__PURE__*/_interopDefaultCompat(path);
-
-const runtimePublicPath = "/@react-refresh";
-const _require = node_module.createRequire((typeof document === 'undefined' ? require('u' + 'rl').pathToFileURL(__filename).href : (_documentCurrentScript && _documentCurrentScript.src || new URL('index.cjs', document.baseURI).href)));
-const reactRefreshDir = path__default.dirname(
-  _require.resolve("react-refresh/package.json")
-);
-const runtimeFilePath = path__default.join(
-  reactRefreshDir,
-  "cjs/react-refresh-runtime.development.js"
-);
-const runtimeCode = `
-const exports = {}
-${fs__default.readFileSync(runtimeFilePath, "utf-8")}
-${fs__default.readFileSync(_require.resolve("./refreshUtils.js"), "utf-8")}
-export default exports
-`;
-const preambleCode = `
-import RefreshRuntime from "__BASE__${runtimePublicPath.slice(1)}"
-RefreshRuntime.injectIntoGlobalHook(window)
-window.$RefreshReg$ = () => {}
-window.$RefreshSig$ = () => (type) => type
-window.__vite_plugin_react_preamble_installed__ = true
-`;
-const sharedHeader = `
-import RefreshRuntime from "${runtimePublicPath}";
-
-const inWebWorker = typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope;
-`.replace(/\n+/g, "");
-const functionHeader = `
-let prevRefreshReg;
-let prevRefreshSig;
-
-if (import.meta.hot && !inWebWorker) {
-  if (!window.__vite_plugin_react_preamble_installed__) {
-    throw new Error(
-      "@vitejs/plugin-react can't detect preamble. Something is wrong. " +
-      "See https://github.com/vitejs/vite-plugin-react/pull/11#discussion_r430879201"
-    );
-  }
-
-  prevRefreshReg = window.$RefreshReg$;
-  prevRefreshSig = window.$RefreshSig$;
-  window.$RefreshReg$ = (type, id) => {
-    RefreshRuntime.register(type, __SOURCE__ + " " + id)
-  };
-  window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
-}`.replace(/\n+/g, "");
-const functionFooter = `
-if (import.meta.hot && !inWebWorker) {
-  window.$RefreshReg$ = prevRefreshReg;
-  window.$RefreshSig$ = prevRefreshSig;
-}`;
-const sharedFooter = `
-if (import.meta.hot && !inWebWorker) {
-  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
-    RefreshRuntime.registerExportsForReactRefresh(__SOURCE__, currentExports);
-    import.meta.hot.accept((nextExports) => {
-      if (!nextExports) return;
-      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate(currentExports, nextExports);
-      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+const align = {
+    right: alignRight,
+    center: alignCenter
+};
+const top = 0;
+const right = 1;
+const bottom = 2;
+const left = 3;
+class UI {
+    constructor(opts) {
+        var _a;
+        this.width = opts.width;
+        this.wrap = (_a = opts.wrap) !== null && _a !== void 0 ? _a : true;
+        this.rows = [];
+    }
+    span(...args) {
+        const cols = this.div(...args);
+        cols.span = true;
+    }
+    resetOutput() {
+        this.rows = [];
+    }
+    div(...args) {
+        if (args.length === 0) {
+            this.div('');
+        }
+        if (this.wrap && this.shouldApplyLayoutDSL(...args) && typeof args[0] === 'string') {
+            return this.applyLayoutDSL(args[0]);
+        }
+        const cols = args.map(arg => {
+            if (typeof arg === 'string') {
+                return this.colFromString(arg);
+            }
+            return arg;
+        });
+        this.rows.push(cols);
+        return cols;
+    }
+    shouldApplyLayoutDSL(...args) {
+        return args.length === 1 && typeof args[0] === 'string' &&
+            /[\t\n]/.test(args[0]);
+    }
+    applyLayoutDSL(str) {
+        const rows = str.split('\n').map(row => row.split('\t'));
+        let leftColumnWidth = 0;
+        // simple heuristic for layout, make sure the
+        // second column lines up along the left-hand.
+        // don't allow the first column to take up more
+        // than 50% of the screen.
+        rows.forEach(columns => {
+            if (columns.length > 1 && mixin.stringWidth(columns[0]) > leftColumnWidth) {
+                leftColumnWidth = Math.min(Math.floor(this.width * 0.5), mixin.stringWidth(columns[0]));
+            }
+        });
+        // generate a table:
+        //  replacing ' ' with padding calculations.
+        //  using the algorithmically generated width.
+        rows.forEach(columns => {
+            this.div(...columns.map((r, i) => {
+                return {
+                    text: r.trim(),
+                    padding: this.measurePadding(r),
+                    width: (i === 0 && columns.length > 1) ? leftColumnWidth : undefined
+                };
+            }));
+        });
+        return this.rows[this.rows.length - 1];
+    }
+    colFromString(text) {
+        return {
+            text,
+            padding: this.measurePadding(text)
+        };
+    }
+    measurePadding(str) {
+        // measure padding without ansi escape codes
+        const noAnsi = mixin.stripAnsi(str);
+        return [0, noAnsi.match(/\s*$/)[0].length, 0, noAnsi.match(/^\s*/)[0].length];
+    }
+    toString() {
+        const lines = [];
+        this.rows.forEach(row => {
+            this.rowToString(row, lines);
+        });
+        // don't display any lines with the
+        // hidden flag set.
+        return lines
+            .filter(line => !line.hidden)
+            .map(line => line.text)
+            .join('\n');
+    }
+    rowToString(row, lines) {
+        this.rasterize(row).forEach((rrow, r) => {
+            let str = '';
+            rrow.forEach((col, c) => {
+                const { width } = row[c]; // the width with padding.
+                const wrapWidth = this.negatePadding(row[c]); // the width without padding.
+                let ts = col; // temporary string used during alignment/padding.
+                if (wrapWidth > mixin.stringWidth(col)) {
+                    ts += ' '.repeat(wrapWidth - mixin.stringWidth(col));
+                }
+                // align the string within its column.
+                if (row[c].align && row[c].align !== 'left' && this.wrap) {
+                    const fn = align[row[c].align];
+                    ts = fn(ts, wrapWidth);
+                    if (mixin.stringWidth(ts) < wrapWidth) {
+                        ts += ' '.repeat((width || 0) - mixin.stringWidth(ts) - 1);
+                    }
+                }
+                // apply border and padding to string.
+                const padding = row[c].padding || [0, 0, 0, 0];
+                if (padding[left]) {
+                    str += ' '.repeat(padding[left]);
+                }
+                str += addBorder(row[c], ts, '| ');
+                str += ts;
+                str += addBorder(row[c], ts, ' |');
+                if (padding[right]) {
+                    str += ' '.repeat(padding[right]);
+                }
+                // if prior row is span, try to render the
+                // current row on the prior line.
+                if (r === 0 && lines.length > 0) {
+                    str = this.renderInline(str, lines[lines.length - 1]);
+                }
+            });
+            // remove trailing whitespace.
+            lines.push({
+                text: str.replace(/ +$/, ''),
+                span: row.span
+            });
+        });
+        return lines;
+    }
+    // if the full 'source' can render in
+    // the target line, do so.
+    renderInline(source, previousLine) {
+        const match = source.match(/^ */);
+        const leadingWhitespace = match ? match[0].length : 0;
+        const target = previousLine.text;
+        const targetTextWidth = mixin.stringWidth(target.trimRight());
+        if (!previousLine.span) {
+            return source;
+        }
+        // if we're not applying wrapping logic,
+        // just always append to the span.
+        if (!this.wrap) {
+            previousLine.hidden = true;
+            return target + source;
+        }
+        if (leadingWhitespace < targetTextWidth) {
+            return source;
+        }
+        previousLine.hidden = true;
+        return target.trimRight() + ' '.repeat(leadingWhitespace - targetTextWidth) + source.trimLeft();
+    }
+    rasterize(row) {
+        const rrows = [];
+        const widths = this.columnWidths(row);
+        let wrapped;
+        // word wrap all columns, and create
+        // a data-structure that is easy to rasterize.
+        row.forEach((col, c) => {
+            // leave room for left and right padding.
+            col.width = widths[c];
+            if (this.wrap) {
+                wrapped = mixin.wrap(col.text, this.negatePadding(col), { hard: true }).split('\n');
+            }
+            else {
+                wrapped = col.text.split('\n');
+            }
+            if (col.border) {
+                wrapped.unshift('.' + '-'.repeat(this.negatePadding(col) + 2) + '.');
+                wrapped.push("'" + '-'.repeat(this.negatePadding(col) + 2) + "'");
+            }
+            // add top and bottom padding.
+            if (col.padding) {
+                wrapped.unshift(...new Array(col.padding[top] || 0).fill(''));
+                wrapped.push(...new Array(col.padding[bottom] || 0).fill(''));
+            }
+            wrapped.forEach((str, r) => {
+                if (!rrows[r]) {
+                    rrows.push([]);
+                }
+                const rrow = rrows[r];
+                for (let i = 0; i < c; i++) {
+                    if (rrow[i] === undefined) {
+                        rrow.push('');
+                    }
+                }
+                rrow.push(str);
+            });
+        });
+        return rrows;
+    }
+    negatePadding(col) {
+        let wrapWidth = col.width || 0;
+        if (col.padding) {
+            wrapWidth -= (col.padding[left] || 0) + (col.padding[right] || 0);
+        }
+        if (col.border) {
+            wrapWidth -= 4;
+        }
+        return wrapWidth;
+    }
+    columnWidths(row) {
+        if (!this.wrap) {
+            return row.map(col => {
+                return col.width || mixin.stringWidth(col.text);
+            });
+        }
+        let unset = row.length;
+        let remainingWidth = this.width;
+        // column widths can be set in config.
+        const widths = row.map(col => {
+            if (col.width) {
+                unset--;
+                remainingWidth -= col.width;
+                return col.width;
+            }
+            return undefined;
+        });
+        // any unset widths should be calculated.
+        const unsetWidth = unset ? Math.floor(remainingWidth / unset) : 0;
+        return widths.map((w, i) => {
+            if (w === undefined) {
+                return Math.max(unsetWidth, _minWidth(row[i]));
+            }
+            return w;
+        });
+    }
+}
+function addBorder(col, ts, style) {
+    if (col.border) {
+        if (/[.']-+[.']/.test(ts)) {
+            return '';
+        }
+        if (ts.trim().length !== 0) {
+            return style;
+        }
+        return '  ';
+    }
+    return '';
+}
+// calculates the minimum width of
+// a column, based on padding preferences.
+function _minWidth(col) {
+    const padding = col.padding || [];
+    const minWidth = 1 + (padding[left] || 0) + (padding[right] || 0);
+    if (col.border) {
+        return minWidth + 4;
+    }
+    return minWidth;
+}
+function getWindowWidth() {
+    /* istanbul ignore next: depends on terminal */
+    if (typeof process === 'object' && process.stdout && process.stdout.columns) {
+        return process.stdout.columns;
+    }
+    return 80;
+}
+function alignRight(str, width) {
+    str = str.trim();
+    const strWidth = mixin.stringWidth(str);
+    if (strWidth < width) {
+        return ' '.repeat(width - strWidth) + str;
+    }
+    return str;
+}
+function alignCenter(str, width) {
+    str = str.trim();
+    const strWidth = mixin.stringWidth(str);
+    /* istanbul ignore next */
+    if (strWidth >= width) {
+        return str;
+    }
+    return ' '.repeat((width - strWidth) >> 1) + str;
+}
+let mixin;
+function cliui(opts, _mixin) {
+    mixin = _mixin;
+    return new UI({
+        width: (opts === null || opts === void 0 ? void 0 : opts.width) || getWindowWidth(),
+        wrap: opts === null || opts === void 0 ? void 0 : opts.wrap
     });
-  });
-}`;
-function addRefreshWrapper(code, id) {
-  return sharedHeader + functionHeader.replace("__SOURCE__", JSON.stringify(id)) + code + functionFooter + sharedFooter.replace("__SOURCE__", JSON.stringify(id));
-}
-function addClassComponentRefreshWrapper(code, id) {
-  return sharedHeader + code + sharedFooter.replace("__SOURCE__", JSON.stringify(id));
 }
 
-let babel;
-async function loadBabel() {
-  if (!babel) {
-    babel = await import('@babel/core');
-  }
-  return babel;
-}
-const reactCompRE = /extends\s+(?:React\.)?(?:Pure)?Component/;
-const refreshContentRE = /\$Refresh(?:Reg|Sig)\$\(/;
-const defaultIncludeRE = /\.[tj]sx?$/;
-const tsRE = /\.tsx?$/;
-function viteReact(opts = {}) {
-  let devBase = "/";
-  const filter = vite.createFilter(opts.include ?? defaultIncludeRE, opts.exclude);
-  const jsxImportSource = opts.jsxImportSource ?? "react";
-  const jsxImportRuntime = `${jsxImportSource}/jsx-runtime`;
-  const jsxImportDevRuntime = `${jsxImportSource}/jsx-dev-runtime`;
-  let isProduction = true;
-  let projectRoot = process.cwd();
-  let skipFastRefresh = false;
-  let runPluginOverrides;
-  let staticBabelOptions;
-  const importReactRE = /\bimport\s+(?:\*\s+as\s+)?React\b/;
-  const viteBabel = {
-    name: "vite:react-babel",
-    enforce: "pre",
-    config() {
-      if (opts.jsxRuntime === "classic") {
-        return {
-          esbuild: {
-            jsx: "transform"
-          }
-        };
-      } else {
-        return {
-          esbuild: {
-            jsx: "automatic",
-            jsxImportSource: opts.jsxImportSource
-          },
-          optimizeDeps: { esbuildOptions: { jsx: "automatic" } }
-        };
-      }
-    },
-    configResolved(config) {
-      devBase = config.base;
-      projectRoot = config.root;
-      isProduction = config.isProduction;
-      skipFastRefresh = isProduction || config.command === "build" || config.server.hmr === false;
-      if ("jsxPure" in opts) {
-        config.logger.warnOnce(
-          "[@vitejs/plugin-react] jsxPure was removed. You can configure esbuild.jsxSideEffects directly."
-        );
-      }
-      const hooks = config.plugins.map((plugin) => plugin.api?.reactBabel).filter(defined);
-      if (hooks.length > 0) {
-        runPluginOverrides = (babelOptions, context) => {
-          hooks.forEach((hook) => hook(babelOptions, context, config));
-        };
-      } else if (typeof opts.babel !== "function") {
-        staticBabelOptions = createBabelOptions(opts.babel);
-      }
-    },
-    async transform(code, id, options) {
-      if (id.includes("/node_modules/"))
-        return;
-      const [filepath] = id.split("?");
-      if (!filter(filepath))
-        return;
-      const ssr = options?.ssr === true;
-      const babelOptions = (() => {
-        if (staticBabelOptions)
-          return staticBabelOptions;
-        const newBabelOptions = createBabelOptions(
-          typeof opts.babel === "function" ? opts.babel(id, { ssr }) : opts.babel
-        );
-        runPluginOverrides?.(newBabelOptions, { id, ssr });
-        return newBabelOptions;
-      })();
-      const plugins = [...babelOptions.plugins];
-      const isJSX = filepath.endsWith("x");
-      const useFastRefresh = !skipFastRefresh && !ssr && (isJSX || (opts.jsxRuntime === "classic" ? importReactRE.test(code) : code.includes(jsxImportDevRuntime) || code.includes(jsxImportRuntime)));
-      if (useFastRefresh) {
-        plugins.push([
-          await loadPlugin("react-refresh/babel"),
-          { skipEnvCheck: true }
-        ]);
-      }
-      if (opts.jsxRuntime === "classic" && isJSX) {
-        if (!isProduction) {
-          plugins.push(
-            await loadPlugin("@babel/plugin-transform-react-jsx-self"),
-            await loadPlugin("@babel/plugin-transform-react-jsx-source")
-          );
-        }
-      }
-      if (!plugins.length && !babelOptions.presets.length && !babelOptions.configFile && !babelOptions.babelrc) {
-        return;
-      }
-      const parserPlugins = [...babelOptions.parserOpts.plugins];
-      if (!filepath.endsWith(".ts")) {
-        parserPlugins.push("jsx");
-      }
-      if (tsRE.test(filepath)) {
-        parserPlugins.push("typescript");
-      }
-      const babel2 = await loadBabel();
-      const result = await babel2.transformAsync(code, {
-        ...babelOptions,
-        root: projectRoot,
-        filename: id,
-        sourceFileName: filepath,
-        // Required for esbuild.jsxDev to provide correct line numbers
-        // This crates issues the react compiler because the re-order is too important
-        // People should use @babel/plugin-transform-react-jsx-development to get back good line numbers
-        retainLines: hasCompiler(plugins) ? false : !isProduction && isJSX && opts.jsxRuntime !== "classic",
-        parserOpts: {
-          ...babelOptions.parserOpts,
-          sourceType: "module",
-          allowAwaitOutsideFunction: true,
-          plugins: parserPlugins
-        },
-        generatorOpts: {
-          ...babelOptions.generatorOpts,
-          decoratorsBeforeExport: true
-        },
-        plugins,
-        sourceMaps: true
-      });
-      if (result) {
-        let code2 = result.code;
-        if (useFastRefresh) {
-          if (refreshContentRE.test(code2)) {
-            code2 = addRefreshWrapper(code2, id);
-          } else if (reactCompRE.test(code2)) {
-            code2 = addClassComponentRefreshWrapper(code2, id);
-          }
-        }
-        return { code: code2, map: result.map };
-      }
-    }
-  };
-  const dependencies = ["react", jsxImportDevRuntime, jsxImportRuntime];
-  const staticBabelPlugins = typeof opts.babel === "object" ? opts.babel?.plugins ?? [] : [];
-  if (hasCompilerWithDefaultRuntime(staticBabelPlugins)) {
-    dependencies.push("react/compiler-runtime");
-  }
-  const viteReactRefresh = {
-    name: "vite:react-refresh",
-    enforce: "pre",
-    config: (userConfig) => ({
-      build: silenceUseClientWarning(userConfig),
-      optimizeDeps: {
-        include: dependencies
-      },
-      resolve: {
-        dedupe: ["react", "react-dom"]
-      }
-    }),
-    resolveId(id) {
-      if (id === runtimePublicPath) {
-        return id;
-      }
-    },
-    load(id) {
-      if (id === runtimePublicPath) {
-        return runtimeCode;
-      }
-    },
-    transformIndexHtml() {
-      if (!skipFastRefresh)
-        return [
-          {
-            tag: "script",
-            attrs: { type: "module" },
-            children: preambleCode.replace(`__BASE__`, devBase)
-          }
-        ];
-    }
-  };
-  return [viteBabel, viteReactRefresh];
-}
-viteReact.preambleCode = preambleCode;
-const silenceUseClientWarning = (userConfig) => ({
-  rollupOptions: {
-    onwarn(warning, defaultHandler) {
-      if (warning.code === "MODULE_LEVEL_DIRECTIVE" && warning.message.includes("use client")) {
-        return;
-      }
-      if (userConfig.build?.rollupOptions?.onwarn) {
-        userConfig.build.rollupOptions.onwarn(warning, defaultHandler);
-      } else {
-        defaultHandler(warning);
-      }
-    }
-  }
-});
-const loadedPlugin = /* @__PURE__ */ new Map();
-function loadPlugin(path) {
-  const cached = loadedPlugin.get(path);
-  if (cached)
-    return cached;
-  const promise = import(path).then((module) => {
-    const value = module.default || module;
-    loadedPlugin.set(path, value);
-    return value;
-  });
-  loadedPlugin.set(path, promise);
-  return promise;
-}
-function createBabelOptions(rawOptions) {
-  var _a;
-  const babelOptions = {
-    babelrc: false,
-    configFile: false,
-    ...rawOptions
-  };
-  babelOptions.plugins || (babelOptions.plugins = []);
-  babelOptions.presets || (babelOptions.presets = []);
-  babelOptions.overrides || (babelOptions.overrides = []);
-  babelOptions.parserOpts || (babelOptions.parserOpts = {});
-  (_a = babelOptions.parserOpts).plugins || (_a.plugins = []);
-  return babelOptions;
-}
-function defined(value) {
-  return value !== void 0;
-}
-function hasCompiler(plugins) {
-  return plugins.some(
-    (p) => p === "babel-plugin-react-compiler" || Array.isArray(p) && p[0] === "babel-plugin-react-compiler"
-  );
-}
-function hasCompilerWithDefaultRuntime(plugins) {
-  return plugins.some(
-    (p) => p === "babel-plugin-react-compiler" || Array.isArray(p) && p[0] === "babel-plugin-react-compiler" && p[1]?.runtimeModule === void 0
-  );
+// Bootstrap cliui with CommonJS dependencies:
+const stringWidth = require('string-width');
+const stripAnsi = require('strip-ansi');
+const wrap = require('wrap-ansi');
+function ui(opts) {
+    return cliui(opts, {
+        stringWidth,
+        stripAnsi,
+        wrap
+    });
 }
 
-module.exports = viteReact;
-module.exports.default = viteReact;
+module.exports = ui;
