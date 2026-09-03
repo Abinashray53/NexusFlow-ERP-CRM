@@ -1,113 +1,264 @@
-# NexusFlow-ERP-CRM
-Operations Portal: Mini ERP + CRM SystemAn production-ready, high-density mini ERP and CRM operations gateway built specifically for wholesale and distribution companies. 
+# @jridgewell/sourcemap-codec
 
-The ecosystem uses a layered architecture to separate concerns, isolate business policies, and protect data integrity.                  ┌────────────────────────────────────────┐
-                  │          React Client SPA UI           │
-                  │  (Role-Protected Dashboard Framework)  │
-                  └───────────────────┬────────────────────┘
-                                      │
-                                      │ Secured HTTPS REST Traffic
-                                      ▼
-                  ┌────────────────────────────────────────┐
-                  │      Express.js API Layer Gateway      │
-                  │  (JWT Guard, Route & Request Validator)│
-                  └───────────────────┬────────────────────┘
-                                      │
-                                      │ Structured ORM Queries
-                                      ▼
-                  ┌────────────────────────────────────────┐
-                  │    PostgreSQL Enterprise Core Engine   │
-                  │ (Strict Transactions / Snapshot Logs) │
-                  └────────────────────────────────────────┘
-💎 Core Module Implementations1. Authentication & RBAC GuardToken Issuance: Generates stateless JSON Web Tokens containing authorization boundaries and user payloads.Role Protection: Route guards prevent privilege escalation on both the frontend layout tree and backend endpoints.2. CRM EngineCustomer Profiles: Tracks names, cell data, emails, addresses, enterprise metadata, and optional GST numbers.Audience Profiling: Groups entities by pricing agreements into Retail, Wholesale, and Distributor channels.Pipeline Status Tracking: Tracks business health dynamically using state attributes (Lead | Active | Inactive).3. Inventory & AuditsInventory Trackers: Identifies item statuses across locations using SKU codes, core categories, pricing, and stock metrics.Low Stock Alerts: Flags items automatically when inventory falls below minimum buffer volumes.Stock Ledger Logs: Records an immutable trail (IN / OUT) stating quantities changed, reasons, actions, and identities.4. Sales Challan SystemComposition: Compiles clean line-item collections with transactional snapshot calculations.Snapshot Architecture: Locks the historical price and product details into JSONB fields at compilation time to insulate documents against future catalog adjustments.Concurrency Validations: Drops transaction isolation limits during confirmation to safely verify inventory availability and prevent overselling.🛠️ Tech StackBackend Core PipelineTechnologyFunctionalityImplementation ContextNode.jsRuntime EnvironmentHigh-throughput async non-blocking core processing engine.TypeScriptType SafetyEnforces strict API schemas and interface contracts across modules.Express.jsWeb FrameworkManages REST request routing pipelines and specialized custom logic filters.PostgreSQLRelational DatabaseHandles relational constraints, complex joins, and transactional database states.Prisma ORMDatabase MappingSimplifies object-relational mapping, database migrations, and schema validation.Frontend UI LayoutTechnologyFunctionalityImplementation ContextReactUI LibraryRenders the entire modular view framework and interactive layout states.Tailwind CSSVisual DesignProvides responsive layouts, clean structures, and consistent look-and-feel themes.ZustandState ControlOrchestrates global stores, reactive cache policies, and user contexts.AxiosClient RequestsPowers API communications with automatic interceptors for JWT injection.📂 Project Directory Map/
-├── backend/                  # Monolith Backend Engine Core
-│   ├── src/
-│   │   ├── config/           # Database pools, server setups, and environment bindings
-│   │   ├── controllers/      # Route request terminators and payload orchestrators
-│   │   ├── middleware/       # Authentication filters and verification engines
-│   │   ├── models/           # Data design validation definitions
-│   │   ├── routes/           # Global endpoints and router maps
-│   │   ├── services/         # Business domain processing systems
-│   │   └── app.ts            # Core express initialization setup
-│   ├── package.json
-│   └── tsconfig.json
-├── frontend/                 # Client UI SPA Single Page Application
-│   ├── src/
-│   │   ├── assets/           # Global static design media assets
-│   │   ├── components/       # Reusable layout building blocks
-│   │   ├── context/          # Authentication tracking definitions
-│   │   ├── pages/            # Application view pages
-│   │   ├── services/         # API consumer configuration endpoints
-│   │   └── App.tsx           # Layout route control hub
-│   ├── package.json
-│   └── tailwind.config.js
-└── README.md
-📋 Comprehensive Database Blueprintsql-- Enums Configuration
-CREATE TYPE user_role AS ENUM ('Admin', 'Sales', 'Warehouse', 'Accounts');
-CREATE TYPE customer_type AS ENUM ('Retail', 'Wholesale', 'Distributor');
-CREATE TYPE customer_status AS ENUM ('Lead', 'Active', 'Inactive');
-CREATE TYPE movement_type AS ENUM ('IN', 'OUT');
-CREATE TYPE challan_status AS ENUM ('Draft', 'Confirmed', 'Cancelled');
+Encode/decode the `mappings` property of a [sourcemap](https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k/edit).
 
--- 1. Users Table
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    role user_role NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
 
--- 2. Customers Table
-CREATE TABLE customers (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    mobile VARCHAR(50) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    business_name VARCHAR(255) NOT NULL,
-    gst_number VARCHAR(100),
-    type customer_type NOT NULL,
-    address TEXT NOT NULL,
-    status customer_status DEFAULT 'Lead',
-    follow_up_date DATE,
-    notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+## Why?
 
--- 3. Products Table
-CREATE TABLE products (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    sku VARCHAR(100) UNIQUE NOT NULL,
-    category VARCHAR(255) NOT NULL,
-    unit_price DECIMAL(12, 2) NOT NULL,
-    current_stock INT NOT NULL DEFAULT 0,
-    min_stock_alert INT NOT NULL DEFAULT 10,
-    warehouse_location VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+Sourcemaps are difficult to generate and manipulate, because the `mappings` property – the part that actually links the generated code back to the original source – is encoded using an obscure method called [Variable-length quantity](https://en.wikipedia.org/wiki/Variable-length_quantity). On top of that, each segment in the mapping contains offsets rather than absolute indices, which means that you can't look at a segment in isolation – you have to understand the whole sourcemap.
 
--- 4. Stock Movement Log Table
-CREATE TABLE stock_movement_logs (
-    id SERIAL PRIMARY KEY,
-    product_id INT REFERENCES products(id) ON DELETE CASCADE,
-    quantity_changed INT NOT NULL,
-    type movement_type NOT NULL,
-    reason TEXT NOT NULL,
-    created_by INT REFERENCES users(id),
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+This package makes the process slightly easier.
 
--- 5. Sales Challans Table
-CREATE TABLE sales_challans (
-    id SERIAL PRIMARY KEY,
-    challan_number VARCHAR(100) UNIQUE NOT NULL,
-    customer_id INT REFERENCES customers(id),
-    products_snapshot JSONB NOT NULL,
-    total_quantity INT NOT NULL,
-    status challan_status DEFAULT 'Draft',
-    created_by INT REFERENCES users(id),
-    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-Use code with caution.📡 API BlueprintAuthentication PathsPOST /api/auth/login - Authenticates credentials and returns a valid JWT.Payload: { "email": "...", "password": "..." }Response: { "token": "ey...", "user": { "role": "Admin" } }Customer CRM PathsGET /api/customers - Returns a paginated list of accounts with active search and filter hooks.POST /api/customers - Adds a new enterprise profile to the system.PATCH /api/customers/:id - Updates biographical customer data or timeline notes.Inventory PathsGET /api/products - Fetches the product catalog and highlights low stock alerts.POST /api/products - Adds a new product profile to the inventory index.GET /api/products/logs - Displays an immutable audit trail of stock adjustments.Challan Operations PathsPOST /api/challans - Creates an order file in Draft or Confirmed status.PATCH /api/challans/:id/status - Promotes records to active states or cancels files safely.
+
+## Installation
+
+```bash
+npm install @jridgewell/sourcemap-codec
+```
+
+
+## Usage
+
+```js
+import { encode, decode } from '@jridgewell/sourcemap-codec';
+
+var decoded = decode( ';EAEEA,EAAE,EAAC,CAAE;ECQY,UACC' );
+
+assert.deepEqual( decoded, [
+	// the first line (of the generated code) has no mappings,
+	// as shown by the starting semi-colon (which separates lines)
+	[],
+
+	// the second line contains four (comma-separated) segments
+	[
+		// segments are encoded as you'd expect:
+		// [ generatedCodeColumn, sourceIndex, sourceCodeLine, sourceCodeColumn, nameIndex ]
+
+		// i.e. the first segment begins at column 2, and maps back to the second column
+		// of the second line (both zero-based) of the 0th source, and uses the 0th
+		// name in the `map.names` array
+		[ 2, 0, 2, 2, 0 ],
+
+		// the remaining segments are 4-length rather than 5-length,
+		// because they don't map a name
+		[ 4, 0, 2, 4 ],
+		[ 6, 0, 2, 5 ],
+		[ 7, 0, 2, 7 ]
+	],
+
+	// the final line contains two segments
+	[
+		[ 2, 1, 10, 19 ],
+		[ 12, 1, 11, 20 ]
+	]
+]);
+
+var encoded = encode( decoded );
+assert.equal( encoded, ';EAEEA,EAAE,EAAC,CAAE;ECQY,UACC' );
+```
+
+## Benchmarks
+
+```
+node v20.10.0
+
+amp.js.map - 45120 segments
+
+Decode Memory Usage:
+local code                             5815135 bytes
+@jridgewell/sourcemap-codec 1.4.15     5868160 bytes
+sourcemap-codec                        5492584 bytes
+source-map-0.6.1                      13569984 bytes
+source-map-0.8.0                       6390584 bytes
+chrome dev tools                       8011136 bytes
+Smallest memory usage is sourcemap-codec
+
+Decode speed:
+decode: local code x 492 ops/sec ±1.22% (90 runs sampled)
+decode: @jridgewell/sourcemap-codec 1.4.15 x 499 ops/sec ±1.16% (89 runs sampled)
+decode: sourcemap-codec x 376 ops/sec ±1.66% (89 runs sampled)
+decode: source-map-0.6.1 x 34.99 ops/sec ±0.94% (48 runs sampled)
+decode: source-map-0.8.0 x 351 ops/sec ±0.07% (95 runs sampled)
+chrome dev tools x 165 ops/sec ±0.91% (86 runs sampled)
+Fastest is decode: @jridgewell/sourcemap-codec 1.4.15
+
+Encode Memory Usage:
+local code                              444248 bytes
+@jridgewell/sourcemap-codec 1.4.15      623024 bytes
+sourcemap-codec                        8696280 bytes
+source-map-0.6.1                       8745176 bytes
+source-map-0.8.0                       8736624 bytes
+Smallest memory usage is local code
+
+Encode speed:
+encode: local code x 796 ops/sec ±0.11% (97 runs sampled)
+encode: @jridgewell/sourcemap-codec 1.4.15 x 795 ops/sec ±0.25% (98 runs sampled)
+encode: sourcemap-codec x 231 ops/sec ±0.83% (86 runs sampled)
+encode: source-map-0.6.1 x 166 ops/sec ±0.57% (86 runs sampled)
+encode: source-map-0.8.0 x 203 ops/sec ±0.45% (88 runs sampled)
+Fastest is encode: local code,encode: @jridgewell/sourcemap-codec 1.4.15
+
+
+***
+
+
+babel.min.js.map - 347793 segments
+
+Decode Memory Usage:
+local code                            35424960 bytes
+@jridgewell/sourcemap-codec 1.4.15    35424696 bytes
+sourcemap-codec                       36033464 bytes
+source-map-0.6.1                      62253704 bytes
+source-map-0.8.0                      43843920 bytes
+chrome dev tools                      45111400 bytes
+Smallest memory usage is @jridgewell/sourcemap-codec 1.4.15
+
+Decode speed:
+decode: local code x 38.18 ops/sec ±5.44% (52 runs sampled)
+decode: @jridgewell/sourcemap-codec 1.4.15 x 38.36 ops/sec ±5.02% (52 runs sampled)
+decode: sourcemap-codec x 34.05 ops/sec ±4.45% (47 runs sampled)
+decode: source-map-0.6.1 x 4.31 ops/sec ±2.76% (15 runs sampled)
+decode: source-map-0.8.0 x 55.60 ops/sec ±0.13% (73 runs sampled)
+chrome dev tools x 16.94 ops/sec ±3.78% (46 runs sampled)
+Fastest is decode: source-map-0.8.0
+
+Encode Memory Usage:
+local code                             2606016 bytes
+@jridgewell/sourcemap-codec 1.4.15     2626440 bytes
+sourcemap-codec                       21152576 bytes
+source-map-0.6.1                      25023928 bytes
+source-map-0.8.0                      25256448 bytes
+Smallest memory usage is local code
+
+Encode speed:
+encode: local code x 127 ops/sec ±0.18% (83 runs sampled)
+encode: @jridgewell/sourcemap-codec 1.4.15 x 128 ops/sec ±0.26% (83 runs sampled)
+encode: sourcemap-codec x 29.31 ops/sec ±2.55% (53 runs sampled)
+encode: source-map-0.6.1 x 18.85 ops/sec ±3.19% (36 runs sampled)
+encode: source-map-0.8.0 x 19.34 ops/sec ±1.97% (36 runs sampled)
+Fastest is encode: @jridgewell/sourcemap-codec 1.4.15
+
+
+***
+
+
+preact.js.map - 1992 segments
+
+Decode Memory Usage:
+local code                              261696 bytes
+@jridgewell/sourcemap-codec 1.4.15      244296 bytes
+sourcemap-codec                         302816 bytes
+source-map-0.6.1                        939176 bytes
+source-map-0.8.0                           336 bytes
+chrome dev tools                        587368 bytes
+Smallest memory usage is source-map-0.8.0
+
+Decode speed:
+decode: local code x 17,782 ops/sec ±0.32% (97 runs sampled)
+decode: @jridgewell/sourcemap-codec 1.4.15 x 17,863 ops/sec ±0.40% (100 runs sampled)
+decode: sourcemap-codec x 12,453 ops/sec ±0.27% (101 runs sampled)
+decode: source-map-0.6.1 x 1,288 ops/sec ±1.05% (96 runs sampled)
+decode: source-map-0.8.0 x 9,289 ops/sec ±0.27% (101 runs sampled)
+chrome dev tools x 4,769 ops/sec ±0.18% (100 runs sampled)
+Fastest is decode: @jridgewell/sourcemap-codec 1.4.15
+
+Encode Memory Usage:
+local code                              262944 bytes
+@jridgewell/sourcemap-codec 1.4.15       25544 bytes
+sourcemap-codec                         323048 bytes
+source-map-0.6.1                        507808 bytes
+source-map-0.8.0                        507480 bytes
+Smallest memory usage is @jridgewell/sourcemap-codec 1.4.15
+
+Encode speed:
+encode: local code x 24,207 ops/sec ±0.79% (95 runs sampled)
+encode: @jridgewell/sourcemap-codec 1.4.15 x 24,288 ops/sec ±0.48% (96 runs sampled)
+encode: sourcemap-codec x 6,761 ops/sec ±0.21% (100 runs sampled)
+encode: source-map-0.6.1 x 5,374 ops/sec ±0.17% (99 runs sampled)
+encode: source-map-0.8.0 x 5,633 ops/sec ±0.32% (99 runs sampled)
+Fastest is encode: @jridgewell/sourcemap-codec 1.4.15,encode: local code
+
+
+***
+
+
+react.js.map - 5726 segments
+
+Decode Memory Usage:
+local code                              678816 bytes
+@jridgewell/sourcemap-codec 1.4.15      678816 bytes
+sourcemap-codec                         816400 bytes
+source-map-0.6.1                       2288864 bytes
+source-map-0.8.0                        721360 bytes
+chrome dev tools                       1012512 bytes
+Smallest memory usage is local code
+
+Decode speed:
+decode: local code x 6,178 ops/sec ±0.19% (98 runs sampled)
+decode: @jridgewell/sourcemap-codec 1.4.15 x 6,261 ops/sec ±0.22% (100 runs sampled)
+decode: sourcemap-codec x 4,472 ops/sec ±0.90% (99 runs sampled)
+decode: source-map-0.6.1 x 449 ops/sec ±0.31% (95 runs sampled)
+decode: source-map-0.8.0 x 3,219 ops/sec ±0.13% (100 runs sampled)
+chrome dev tools x 1,743 ops/sec ±0.20% (99 runs sampled)
+Fastest is decode: @jridgewell/sourcemap-codec 1.4.15
+
+Encode Memory Usage:
+local code                              140960 bytes
+@jridgewell/sourcemap-codec 1.4.15      159808 bytes
+sourcemap-codec                         969304 bytes
+source-map-0.6.1                        930520 bytes
+source-map-0.8.0                        930248 bytes
+Smallest memory usage is local code
+
+Encode speed:
+encode: local code x 8,013 ops/sec ±0.19% (100 runs sampled)
+encode: @jridgewell/sourcemap-codec 1.4.15 x 7,989 ops/sec ±0.20% (101 runs sampled)
+encode: sourcemap-codec x 2,472 ops/sec ±0.21% (99 runs sampled)
+encode: source-map-0.6.1 x 2,200 ops/sec ±0.17% (99 runs sampled)
+encode: source-map-0.8.0 x 2,220 ops/sec ±0.37% (99 runs sampled)
+Fastest is encode: local code
+
+
+***
+
+
+vscode.map - 2141001 segments
+
+Decode Memory Usage:
+local code                           198955264 bytes
+@jridgewell/sourcemap-codec 1.4.15   199175352 bytes
+sourcemap-codec                      199102688 bytes
+source-map-0.6.1                     386323432 bytes
+source-map-0.8.0                     244116432 bytes
+chrome dev tools                     293734280 bytes
+Smallest memory usage is local code
+
+Decode speed:
+decode: local code x 3.90 ops/sec ±22.21% (15 runs sampled)
+decode: @jridgewell/sourcemap-codec 1.4.15 x 3.95 ops/sec ±23.53% (15 runs sampled)
+decode: sourcemap-codec x 3.82 ops/sec ±17.94% (14 runs sampled)
+decode: source-map-0.6.1 x 0.61 ops/sec ±7.81% (6 runs sampled)
+decode: source-map-0.8.0 x 9.54 ops/sec ±0.28% (28 runs sampled)
+chrome dev tools x 2.18 ops/sec ±10.58% (10 runs sampled)
+Fastest is decode: source-map-0.8.0
+
+Encode Memory Usage:
+local code                            13509880 bytes
+@jridgewell/sourcemap-codec 1.4.15    13537648 bytes
+sourcemap-codec                       32540104 bytes
+source-map-0.6.1                     127531040 bytes
+source-map-0.8.0                     127535312 bytes
+Smallest memory usage is local code
+
+Encode speed:
+encode: local code x 20.10 ops/sec ±0.19% (38 runs sampled)
+encode: @jridgewell/sourcemap-codec 1.4.15 x 20.26 ops/sec ±0.32% (38 runs sampled)
+encode: sourcemap-codec x 5.44 ops/sec ±1.64% (18 runs sampled)
+encode: source-map-0.6.1 x 2.30 ops/sec ±4.79% (10 runs sampled)
+encode: source-map-0.8.0 x 2.46 ops/sec ±6.53% (10 runs sampled)
+Fastest is encode: @jridgewell/sourcemap-codec 1.4.15
+```
+
+# License
+
+MIT
