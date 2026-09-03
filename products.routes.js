@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const products_controller_1 = require("./products.controller");
+const products_schema_1 = require("./products.schema");
+const validate_1 = require("../../middleware/validate");
+const auth_1 = require("../../middleware/auth");
+const asyncHandler_1 = require("../../utils/asyncHandler");
+const router = (0, express_1.Router)();
+router.use(auth_1.authenticate);
+router.get("/", (0, asyncHandler_1.asyncHandler)(products_controller_1.listProducts));
+router.get("/:id", (0, asyncHandler_1.asyncHandler)(products_controller_1.getProduct));
+router.post("/", (0, auth_1.authorize)("ADMIN", "WAREHOUSE"), (0, validate_1.validateBody)(products_schema_1.createProductSchema), (0, asyncHandler_1.asyncHandler)(products_controller_1.createProduct));
+router.put("/:id", (0, auth_1.authorize)("ADMIN", "WAREHOUSE"), (0, validate_1.validateBody)(products_schema_1.updateProductSchema), (0, asyncHandler_1.asyncHandler)(products_controller_1.updateProduct));
+router.post("/:id/stock-movements", (0, auth_1.authorize)("ADMIN", "WAREHOUSE"), (0, validate_1.validateBody)(products_schema_1.stockAdjustSchema), (0, asyncHandler_1.asyncHandler)(products_controller_1.adjustStock));
+exports.default = router;

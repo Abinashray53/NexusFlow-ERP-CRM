@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const challans_controller_1 = require("./challans.controller");
+const challans_schema_1 = require("./challans.schema");
+const validate_1 = require("../../middleware/validate");
+const auth_1 = require("../../middleware/auth");
+const asyncHandler_1 = require("../../utils/asyncHandler");
+const router = (0, express_1.Router)();
+router.use(auth_1.authenticate);
+router.get("/", (0, asyncHandler_1.asyncHandler)(challans_controller_1.listChallans));
+router.get("/:id", (0, asyncHandler_1.asyncHandler)(challans_controller_1.getChallan));
+router.post("/", (0, auth_1.authorize)("ADMIN", "SALES"), (0, validate_1.validateBody)(challans_schema_1.createChallanSchema), (0, asyncHandler_1.asyncHandler)(challans_controller_1.createChallan));
+router.patch("/:id/confirm", (0, auth_1.authorize)("ADMIN", "SALES", "WAREHOUSE"), (0, asyncHandler_1.asyncHandler)(challans_controller_1.confirmChallan));
+router.patch("/:id/cancel", (0, auth_1.authorize)("ADMIN", "SALES"), (0, asyncHandler_1.asyncHandler)(challans_controller_1.cancelChallan));
+exports.default = router;
