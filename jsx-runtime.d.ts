@@ -2,6 +2,7 @@ import * as React from "./";
 export { Fragment } from "./";
 
 export namespace JSX {
+    type ElementType = React.JSX.ElementType;
     interface Element extends React.JSX.Element {}
     interface ElementClass extends React.JSX.ElementClass {}
     interface ElementAttributesProperty extends React.JSX.ElementAttributesProperty {}

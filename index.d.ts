@@ -1,64 +1,149 @@
-type RemoveFromTuple<
-  Tuple extends readonly unknown[],
-  RemoveCount extends number,
-  Index extends 1[] = []
-> = Index["length"] extends RemoveCount
-  ? Tuple
-  : Tuple extends [infer First, ...infer Rest]
-  ? RemoveFromTuple<Rest, RemoveCount, [...Index, 1]>
-  : Tuple;
+// NOTE: Users of the `experimental` builds of React should add a reference
+// to 'react-dom/experimental' in their project. See experimental.d.ts's top comment
+// for reference and documentation on how exactly to do it.
 
-type ConcatTuples<
-  Prefix extends readonly unknown[],
-  Suffix extends readonly unknown[]
-> = [...Prefix, ...Suffix];
+export as namespace ReactDOM;
 
-type ExtractFunctionParams<T> = T extends (this: infer TThis, ...args: infer P extends readonly unknown[]) => infer R
-  ? { thisArg: TThis; params: P; returnType: R }
-  : never;
+import {
+    CElement,
+    Component,
+    ComponentState,
+    DOMAttributes,
+    DOMElement,
+    FunctionComponentElement,
+    ReactElement,
+    ReactInstance,
+    ReactNode,
+    ReactPortal,
+} from "react";
 
-type BindFunction<
-  T extends (this: any, ...args: any[]) => any,
-  TThis,
-  TBoundArgs extends readonly unknown[],
-  ReceiverBound extends boolean
-> = ExtractFunctionParams<T> extends {
-  thisArg: infer OrigThis;
-  params: infer P extends readonly unknown[];
-  returnType: infer R;
+/**
+ * @deprecated See https://react.dev/reference/react-dom/findDOMNode#alternatives
+ */
+export function findDOMNode(instance: ReactInstance | null | undefined): Element | null | Text;
+/**
+ * @deprecated See https://react.dev/blog/2022/03/08/react-18-upgrade-guide#updates-to-client-rendering-apis
+ */
+export function unmountComponentAtNode(container: Element | DocumentFragment): boolean;
+
+export function createPortal(
+    children: ReactNode,
+    container: Element | DocumentFragment,
+    key?: null | string,
+): ReactPortal;
+
+export const version: string;
+/**
+ * @deprecated See https://react.dev/blog/2022/03/08/react-18-upgrade-guide#updates-to-client-rendering-apis
+ */
+export const render: Renderer;
+/**
+ * @deprecated See https://react.dev/blog/2022/03/08/react-18-upgrade-guide#updates-to-client-rendering-apis
+ */
+export const hydrate: Renderer;
+
+export function flushSync<R>(fn: () => R): R;
+
+export function unstable_batchedUpdates<A, R>(callback: (a: A) => R, a: A): R;
+export function unstable_batchedUpdates<R>(callback: () => R): R;
+
+/**
+ * @deprecated
+ */
+export function unstable_renderSubtreeIntoContainer<T extends Element>(
+    parentComponent: Component<any>,
+    element: DOMElement<DOMAttributes<T>, T>,
+    container: Element,
+    callback?: (element: T) => any,
+): T;
+/**
+ * @deprecated
+ */
+export function unstable_renderSubtreeIntoContainer<P, T extends Component<P, ComponentState>>(
+    parentComponent: Component<any>,
+    element: CElement<P, T>,
+    container: Element,
+    callback?: (component: T) => any,
+): T;
+/**
+ * @deprecated
+ */
+export function unstable_renderSubtreeIntoContainer<P>(
+    parentComponent: Component<any>,
+    element: ReactElement<P>,
+    container: Element,
+    callback?: (component?: Component<P, ComponentState> | Element) => any,
+    // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+): Component<P, ComponentState> | Element | void;
+
+export type Container = Element | Document | DocumentFragment;
+
+export interface Renderer {
+    // Deprecated(render): The return value is deprecated.
+    // In future releases the render function's return type will be void.
+
+    /**
+     * @deprecated See https://react.dev/blog/2022/03/08/react-18-upgrade-guide#updates-to-client-rendering-apis
+     */
+    <T extends Element>(
+        element: DOMElement<DOMAttributes<T>, T>,
+        container: Container | null,
+        callback?: () => void,
+    ): T;
+
+    /**
+     * @deprecated See https://react.dev/blog/2022/03/08/react-18-upgrade-guide#updates-to-client-rendering-apis
+     */
+    (
+        element: Array<DOMElement<DOMAttributes<any>, any>>,
+        container: Container | null,
+        callback?: () => void,
+    ): Element;
+
+    /**
+     * @deprecated See https://react.dev/blog/2022/03/08/react-18-upgrade-guide#updates-to-client-rendering-apis
+     */
+    (
+        element: FunctionComponentElement<any> | Array<FunctionComponentElement<any>>,
+        container: Container | null,
+        callback?: () => void,
+    ): void;
+
+    /**
+     * @deprecated See https://react.dev/blog/2022/03/08/react-18-upgrade-guide#updates-to-client-rendering-apis
+     */
+    <P, T extends Component<P, ComponentState>>(
+        element: CElement<P, T>,
+        container: Container | null,
+        callback?: () => void,
+    ): T;
+
+    /**
+     * @deprecated See https://react.dev/blog/2022/03/08/react-18-upgrade-guide#updates-to-client-rendering-apis
+     */
+    (
+        element: Array<CElement<any, Component<any, ComponentState>>>,
+        container: Container | null,
+        callback?: () => void,
+    ): Component<any, ComponentState>;
+
+    /**
+     * @deprecated See https://react.dev/blog/2022/03/08/react-18-upgrade-guide#updates-to-client-rendering-apis
+     */
+    <P>(
+        element: ReactElement<P>,
+        container: Container | null,
+        callback?: () => void,
+        // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+    ): Component<P, ComponentState> | Element | void;
+
+    /**
+     * @deprecated See https://react.dev/blog/2022/03/08/react-18-upgrade-guide#updates-to-client-rendering-apis
+     */
+    (
+        element: ReactElement[],
+        container: Container | null,
+        callback?: () => void,
+        // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+    ): Component<any, ComponentState> | Element | void;
 }
-  ? ReceiverBound extends true
-    ? (...args: RemoveFromTuple<P, Extract<TBoundArgs["length"], number>>) => R extends [OrigThis, ...infer Rest]
-      ? [TThis, ...Rest] // Replace `this` with `thisArg`
-      : R
-    : <U, RemainingArgs extends RemoveFromTuple<P, Extract<TBoundArgs["length"], number>>>(
-        thisArg: U,
-        ...args: RemainingArgs
-      ) => R extends [OrigThis, ...infer Rest]
-      ? [U, ...ConcatTuples<TBoundArgs, Rest>] // Preserve bound args in return type
-      : R
-  : never;
-
-declare function callBind<
-  const T extends (this: any, ...args: any[]) => any,
-  Extracted extends ExtractFunctionParams<T>,
-  const TBoundArgs extends Partial<Extracted["params"]> & readonly unknown[],
-  const TThis extends Extracted["thisArg"]
->(
-  args: [fn: T, thisArg: TThis, ...boundArgs: TBoundArgs]
-): BindFunction<T, TThis, TBoundArgs, true>;
-
-declare function callBind<
-  const T extends (this: any, ...args: any[]) => any,
-  Extracted extends ExtractFunctionParams<T>,
-  const TBoundArgs extends Partial<Extracted["params"]> & readonly unknown[]
->(
-  args: [fn: T, ...boundArgs: TBoundArgs]
-): BindFunction<T, Extracted["thisArg"], TBoundArgs, false>;
-
-declare function callBind<const TArgs extends readonly unknown[]>(
-  args: [fn: Exclude<TArgs[0], Function>, ...rest: TArgs]
-): never;
-
-// export as namespace callBind;
-export = callBind;

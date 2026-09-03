@@ -1,157 +1,184 @@
 /**
- * These are types for things that are present in the React `canary` release channel.
+ * These are types for things that are present in the upcoming React 18 release.
+ *
+ * Once React 18 is released they can just be moved to the main index file.
  *
  * To load the types declared here in an actual project, there are three ways. The easiest one,
  * if your `tsconfig.json` already has a `"types"` array in the `"compilerOptions"` section,
- * is to add `"react/canary"` to the `"types"` array.
+ * is to add `"react-dom/canary"` to the `"types"` array.
  *
  * Alternatively, a specific import syntax can to be used from a typescript file.
  * This module does not exist in reality, which is why the {} is important:
  *
  * ```ts
- * import {} from 'react/canary'
+ * import {} from 'react-dom/canary'
  * ```
  *
  * It is also possible to include it through a triple-slash reference:
  *
  * ```ts
- * /// <reference types="react/canary" />
+ * /// <reference types="react-dom/canary" />
  * ```
  *
  * Either the import or the reference only needs to appear once, anywhere in the project.
  */
 
-// See https://github.com/facebook/react/blob/main/packages/react/src/React.js to see how the exports are declared,
+// See https://github.com/facebook/react/blob/main/packages/react-dom/index.js to see how the exports are declared,
+// but confirm with published source code (e.g. https://unpkg.com/react-dom@canary) that these exports end up in the published code
 
-import React = require(".");
+import React = require("react");
+import ReactDOM = require(".");
 
 export {};
 
-declare const UNDEFINED_VOID_ONLY: unique symbol;
-type VoidOrUndefinedOnly = void | { [UNDEFINED_VOID_ONLY]: never };
-
-type NativeToggleEvent = ToggleEvent;
+declare const REACT_FORM_STATE_SIGIL: unique symbol;
 
 declare module "." {
-    export type Usable<T> = PromiseLike<T> | Context<T>;
+    function prefetchDNS(href: string): void;
 
-    export function use<T>(usable: Usable<T>): T;
-
-    interface ServerContextJSONArray extends ReadonlyArray<ServerContextJSONValue> {}
-    export type ServerContextJSONValue =
-        | string
-        | boolean
-        | number
-        | null
-        | ServerContextJSONArray
-        | { [key: string]: ServerContextJSONValue };
-    export interface ServerContext<T extends ServerContextJSONValue> {
-        Provider: Provider<T>;
+    interface PreconnectOptions {
+        // Don't create a helper type.
+        // It would have to be in module scope to be inlined in TS tooltips.
+        // But then it becomes part of the public API.
+        // TODO: Upstream to microsoft/TypeScript-DOM-lib-generator -> w3c/webref
+        // since the spec has a notion of a dedicated type: https://html.spec.whatwg.org/multipage/urls-and-fetching.html#cors-settings-attribute
+        crossOrigin?: "anonymous" | "use-credentials" | "" | undefined;
     }
-    /**
-     * Accepts a context object (the value returned from `React.createContext` or `React.createServerContext`) and returns the current
-     * context value, as given by the nearest context provider for the given context.
-     *
-     * @version 16.8.0
-     * @see https://react.dev/reference/react/useContext
-     */
-    function useContext<T extends ServerContextJSONValue>(context: ServerContext<T>): T;
-    export function createServerContext<T extends ServerContextJSONValue>(
-        globalName: string,
-        defaultValue: T,
-    ): ServerContext<T>;
+    function preconnect(href: string, options?: PreconnectOptions): void;
 
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    export function cache<CachedFunction extends Function>(fn: CachedFunction): CachedFunction;
-
-    export function unstable_useCacheRefresh(): () => void;
-
-    interface DO_NOT_USE_OR_YOU_WILL_BE_FIRED_EXPERIMENTAL_FORM_ACTIONS {
-        functions: (formData: FormData) => void;
+    type PreloadAs =
+        | "audio"
+        | "document"
+        | "embed"
+        | "fetch"
+        | "font"
+        | "image"
+        | "object"
+        | "track"
+        | "script"
+        | "style"
+        | "video"
+        | "worker";
+    interface PreloadOptions {
+        as: PreloadAs;
+        crossOrigin?: "anonymous" | "use-credentials" | "" | undefined;
+        fetchPriority?: "high" | "low" | "auto" | undefined;
+        // TODO: These should only be allowed with `as: 'image'` but it's not trivial to write tests against the full TS support matrix.
+        imageSizes?: string | undefined;
+        imageSrcSet?: string | undefined;
+        integrity?: string | undefined;
+        type?: string | undefined;
+        nonce?: string | undefined;
+        referrerPolicy?: ReferrerPolicy | undefined;
     }
+    function preload(href: string, options?: PreloadOptions): void;
 
-    export interface TransitionStartFunction {
+    // https://html.spec.whatwg.org/multipage/links.html#link-type-modulepreload
+    type PreloadModuleAs = RequestDestination;
+    interface PreloadModuleOptions {
         /**
-         * Marks all state updates inside the async function as transitions
-         *
-         * @see {https://react.dev/reference/react/useTransition#starttransition}
-         *
-         * @param callback
+         * @default "script"
          */
-        (callback: () => Promise<VoidOrUndefinedOnly>): void;
+        as: PreloadModuleAs;
+        crossOrigin?: "anonymous" | "use-credentials" | "" | undefined;
+        integrity?: string | undefined;
+        nonce?: string | undefined;
+    }
+    function preloadModule(href: string, options?: PreloadModuleOptions): void;
+
+    type PreinitAs = "script" | "style";
+    interface PreinitOptions {
+        as: PreinitAs;
+        crossOrigin?: "anonymous" | "use-credentials" | "" | undefined;
+        fetchPriority?: "high" | "low" | "auto" | undefined;
+        precedence?: string | undefined;
+        integrity?: string | undefined;
+        nonce?: string | undefined;
+    }
+    function preinit(href: string, options?: PreinitOptions): void;
+
+    // Will be expanded to include all of https://github.com/tc39/proposal-import-attributes
+    type PreinitModuleAs = "script";
+    interface PreinitModuleOptions {
+        /**
+         * @default "script"
+         */
+        as?: PreinitModuleAs;
+        crossOrigin?: "anonymous" | "use-credentials" | "" | undefined;
+        integrity?: string | undefined;
+        nonce?: string | undefined;
+    }
+    function preinitModule(href: string, options?: PreinitModuleOptions): void;
+
+    interface FormStatusNotPending {
+        pending: false;
+        data: null;
+        method: null;
+        action: null;
     }
 
-    /**
-     * Similar to `useTransition` but allows uses where hooks are not available.
-     *
-     * @param callback An _asynchronous_ function which causes state updates that can be deferred.
-     */
-    export function startTransition(scope: () => Promise<VoidOrUndefinedOnly>): void;
-
-    export function useOptimistic<State>(
-        passthrough: State,
-    ): [State, (action: State | ((pendingState: State) => State)) => void];
-    export function useOptimistic<State, Action>(
-        passthrough: State,
-        reducer: (state: State, action: Action) => State,
-    ): [State, (action: Action) => void];
-
-    interface DO_NOT_USE_OR_YOU_WILL_BE_FIRED_CALLBACK_REF_RETURN_VALUES {
-        cleanup: () => VoidOrUndefinedOnly;
+    interface FormStatusPending {
+        pending: true;
+        data: FormData;
+        method: string;
+        action: string | ((formData: FormData) => void | Promise<void>);
     }
 
-    export function useActionState<State>(
+    type FormStatus = FormStatusPending | FormStatusNotPending;
+
+    function useFormStatus(): FormStatus;
+
+    function useFormState<State>(
         action: (state: Awaited<State>) => State | Promise<State>,
         initialState: Awaited<State>,
         permalink?: string,
     ): [state: Awaited<State>, dispatch: () => void, isPending: boolean];
-    export function useActionState<State, Payload>(
+    function useFormState<State, Payload>(
         action: (state: Awaited<State>, payload: Payload) => State | Promise<State>,
         initialState: Awaited<State>,
         permalink?: string,
     ): [state: Awaited<State>, dispatch: (payload: Payload) => void, isPending: boolean];
 
-    interface DOMAttributes<T> {
-        // Transition Events
-        onTransitionCancel?: TransitionEventHandler<T> | undefined;
-        onTransitionCancelCapture?: TransitionEventHandler<T> | undefined;
-        onTransitionRun?: TransitionEventHandler<T> | undefined;
-        onTransitionRunCapture?: TransitionEventHandler<T> | undefined;
-        onTransitionStart?: TransitionEventHandler<T> | undefined;
-        onTransitionStartCapture?: TransitionEventHandler<T> | undefined;
+    function requestFormReset(form: HTMLFormElement): void;
+}
+
+declare module "./client" {
+    interface ReactFormState {
+        [REACT_FORM_STATE_SIGIL]: never;
     }
 
-    type ToggleEventHandler<T = Element> = EventHandler<ToggleEvent<T>>;
-
-    interface HTMLAttributes<T> {
-        popover?: "" | "auto" | "manual" | undefined;
-        popoverTargetAction?: "toggle" | "show" | "hide" | undefined;
-        popoverTarget?: string | undefined;
-        onToggle?: ToggleEventHandler<T> | undefined;
-        onBeforeToggle?: ToggleEventHandler<T> | undefined;
+    interface RootOptions {
+        onUncaughtError?:
+            | ((error: unknown, errorInfo: { componentStack?: string | undefined }) => void)
+            | undefined;
+        onCaughtError?:
+            | ((
+                error: unknown,
+                errorInfo: {
+                    componentStack?: string | undefined;
+                    errorBoundary?: React.Component<unknown> | undefined;
+                },
+            ) => void)
+            | undefined;
     }
 
-    interface ToggleEvent<T = Element> extends SyntheticEvent<T, NativeToggleEvent> {
-        oldState: "closed" | "open";
-        newState: "closed" | "open";
+    interface HydrationOptions {
+        formState?: ReactFormState | null;
+        onUncaughtError?:
+            | ((error: unknown, errorInfo: { componentStack?: string | undefined }) => void)
+            | undefined;
+        onCaughtError?:
+            | ((
+                error: unknown,
+                errorInfo: {
+                    componentStack?: string | undefined;
+                    errorBoundary?: React.Component<unknown> | undefined;
+                },
+            ) => void)
+            | undefined;
     }
 
-    /**
-     * @internal Use `Awaited<ReactNode>` instead
-     */
-    // Helper type to enable `Awaited<ReactNode>`.
-    // Must be a copy of the non-thenables of `ReactNode`.
-    type AwaitedReactNode =
-        | ReactElement
-        | string
-        | number
-        | Iterable<AwaitedReactNode>
-        | ReactPortal
-        | boolean
-        | null
-        | undefined;
-    interface DO_NOT_USE_OR_YOU_WILL_BE_FIRED_EXPERIMENTAL_REACT_NODES {
-        promises: Promise<AwaitedReactNode>;
-        bigints: bigint;
+    interface DO_NOT_USE_OR_YOU_WILL_BE_FIRED_EXPERIMENTAL_CREATE_ROOT_CONTAINERS {
+        document: Document;
     }
 }
