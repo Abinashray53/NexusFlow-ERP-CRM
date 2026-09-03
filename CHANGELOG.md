@@ -1,916 +1,1934 @@
-# `@remix-run/router`
+# Changelog
 
-## v1.23.4
+## v1.19.0 — July 22, 2026
 
-### Patch Changes
+This release raises the form-data security floor, adds configuration and type-system capabilities, and fixes NO_PROXY matching, interceptor errors, progress reporting, and serialization edge cases.
 
-- Fix double slash normalization for `useNavigate` colon urls ([3ed85d5](https://github.com/remix-run/react-router/commit/3ed85d5))
+## 🔒 Security Fixes
 
-  - As a reminder, `navigate()` is only intended for navigations within the React Router application and not for external navigations to other domains
-  - This change may be a breaking bug fix if you are using `navigate` for external navigations
+- Multipart Form Data: Raised the form-data dependency floor to ^4.0.6, preventing fresh installations from resolving versions affected by the CRLF injection vulnerability GHSA-hmw2-7cc7-3qxx (https://github.com/advisories/GHSA-hmw2-7cc7-3qxx). (#11028)
 
-## v1.23.3
+## 🚀 New Features
 
-### Patch Changes
+- Configuration Extensibility: Preserved own-enumerable symbol-keyed fields through mergeConfig and added a generic params type across public TypeScript declarations, responses, errors,
+  adapters, and serializers. (#11043, #11081)
+- Header Parameter Parsing: Added the opt-in AxiosHeaders.parseParameters() parser for quote-aware, RFC-style HTTP parameter parsing while preserving legacy parsing behavior. (#11051)
+- HTTP Status Codes: Added the missing Cloudflare 520 WebServerReturnsAnUnknownError status and matching ESM/CJS declarations. (#11067)
 
-- Lift `decodePath` call out of hot path during route matching ([#15119](https://github.com/remix-run/react-router/pull/15119))
-- Normalize double slashes in redirect paths ([#15118](https://github.com/remix-run/react-router/pull/15118))
+## 🐛 Bug Fixes
 
-## 1.23.2
+- Form Data Conversion: Limited formDataToJSON path splitting to dot and bracket notation, preserving literal punctuation in keys, and removed browser-facing Buffer.from usage from toFormData to avoid unnecessary polyfills. (#11006, #11018)
+- Proxy Bypass: Canonicalized IPv4 shorthand, octal, and hexadecimal forms during NO_PROXY matching and honored * entries within comma- or space-separated bypass lists. (#11029, #11053)
+- Cancellation: Propagated already-aborted input signals immediately when composing abort signals. (#11035)
+- Header Handling: Preserved empty first values for duplicate singleton headers and made AxiosHeaders#getSetCookie() consistently return arrays for present values. (#11036, #11037)
+- URL Handling: Included normalized, safely redacted offending URLs in malformed-protocol errors and removed repeated trailing slashes when combining base URLs. (#11008, #11038)
 
-### Patch Changes
+- Progress Events: Clamped malformed negative progress values to zero and ensured final Node.js download progress events are delivered before streamed responses close. (#11039, #11040)
+- Error and JSON Serialization: Serialized Set values as arrays in JSON-compatible snapshots and synthesized useful AxiosError messages from otherwise-empty AggregateError instances. (#11044, #11059)
+- Content-Length Enforcement: Corrected base64 data: URL size estimation so maxContentLength is enforced consistently by the HTTP and Fetch adapters. (#11061)
+- Synchronous Interceptors: Prevented requests from being dispatched after synchronous request interceptors fail unless their paired rejection handler resolves successfully. (#11071)
 
-- Validate redirect locations ([#14707](https://github.com/remix-run/react-router/pull/14707))
+## 🔧 Maintenance & Chores
 
-## 1.23.1
+- Dependencies: Updated development and test tooling, the docs fixture's Axios version, and GitHub Actions integrations including Checkout, Setup Node, Setup Deno, and Zizmor. (#11031, #11055, #11056, #11058, #11079, #11080, #11088, #11089, #11090)
+- Build Outputs: Limited sourcemap generation to published minified bundles, removing broken map references from non-minified builds. (#11054)
+- Form Data Internals: Centralized FormData header handling and made the Node.js adapter tolerate getHeaders() returning undefined under the content-only policy. (#11062)
+- Developer Experience: Ignored common local AI-tooling directories and fixed a constant-reassignment crash when the development sandbox serves its root path. (#11032, #11073)
+- Documentation: Updated sponsor information, clarified that baseURL is not a path-security boundary, scoped provenance claims to attested releases, and corrected the configuration-defaults documentation. (#11041, #11068, #11076, #11078)
+- Publishing: Simplified v1 publishing to use the npm version bundled with Node.js 26 and updated package metadata for the 1.19.0 release. (#11083, #11095)
 
-### Patch Changes
+## 🌟 New Contributors
 
-- Normalize double-slashes in `resolvePath` ([#14537](https://github.com/remix-run/react-router/pull/14537))
+We are thrilled to welcome our new contributors. Thank you for helping improve Axios:
 
-## 1.23.0
+- @afonsojramos (#11028)
+- @MahinAnowar (#11006)
+- @yassertawfik4 (#11024)
+- @AnandSundar (#11029)
+- @lin-hongkuan (#11035)
+- @Wali007-lab (#11054)
+- @magicdawn (#11043)
+- @andrewkernel (#11053)
+- @Sagargupta16 (#11059)
+- @Rpaudel379 (#11078)
+- @kobihikri (#11076)
+- @spokodev (#11061)
+- @shaedrich (#11081)
+- @QodeXcli (#11062)
+- @akahoshi1421 (#11067)
+- @TheHonoredOne914 (#11071)
+- @Ahsan1Murtaza (#11073)
 
-### Minor Changes
+[Full Changelog](https://github.com/axios/axios/compare/v1.18.1...v1.19.0)
 
-- Add `fetcherKey` as a parameter to `patchRoutesOnNavigation` ([#13109](https://github.com/remix-run/react-router/pull/13109))
 
-### Patch Changes
+## v1.18.0 — June 13, 2026
 
-- Fix regression introduced in `6.29.0` via [#12169](https://github.com/remix-run/react-router/pull/12169) that caused issues navigating to hash routes inside splat routes for applications using Lazy Route Discovery (`patchRoutesOnNavigation`) ([#13108](https://github.com/remix-run/react-router/pull/13108))
+This release hardens redirect and URL handling, improves the validateStatus configuration semantics, and includes updates to documentation, dependencies, and release metadata.
 
-## 1.22.0
+## 🔒 Security Fixes
 
-### Minor Changes
+* **Redirect Header Safety:** Added Node HTTP adapter support for stripping caller-specified sensitive headers on cross-origin redirects, helping prevent custom auth headers such as API keys from leaking to another origin. (__#10892__)
 
-- Provide the request `signal` as a parameter to `patchRoutesOnNavigation` ([#12900](https://github.com/remix-run/react-router/pull/12900))
+* **URL And Request Hardening:** Rejects malformed `http:` and `https:` URLs that omit `//` with `ERR_INVALID_URL`, while tightening prototype-pollution-safe config reads, stream size limits, FormData depth handling, data URL sizing, and local `NO_PROXY` matching. (__#11000__)
 
-  - This can be used to abort any manifest fetches if the in-flight navigation/fetcher is aborted
+## 🐛 Bug Fixes
 
-### Patch Changes
+* **Status Validation:** Added `transitional.validateStatusUndefinedResolves` so applications can opt in to treating `validateStatus: undefined` like the option was omitted, while `validateStatus: null` remains the explicit way to accept every status. (__#10899__)
 
-- Do not log v7 deprecation warnings in production builds ([#12794](https://github.com/remix-run/react-router/pull/12794))
-- Strip search parameters from `patchRoutesOnNavigation` `path` param for fetcher calls ([#12899](https://github.com/remix-run/react-router/pull/12899))
-- Properly bubble headers when throwing a `data()` result ([#12845](https://github.com/remix-run/react-router/pull/12845))
-- Optimize route matching by skipping redundant `matchRoutes` calls when possible ([#12169](https://github.com/remix-run/react-router/pull/12169))
+## 🔧 Maintenance & Chores
 
-## 1.21.1
+* **Documentation:** Published the v1.17.0 release notes, fixed a changelog typo, clarified the package update PR policy, and marked the `proxy` request config as Node.js-only in the advanced docs. (__#10984__, __#10988__, __#10992__, __#10995__)
 
-### Patch Changes
+* **Dependencies:** Bumped `@babel/core`, `@babel/preset-env`, `@commitlint/cli`, `@commitlint/config-conventional`, `@rollup/plugin-babel`, `@rollup/plugin-commonjs`, `@vitest/browser`, `@vitest/browser-playwright`, `eslint`, `lint-staged`, `rollup`, `vitest`, and `actions/checkout`. (__#10989__, __#10996__, __#10997__)
 
-- - Fix issue with fetcher data cleanup in the data layer on fetcher unmount ([#12674](https://github.com/remix-run/react-router/pull/12674))
-  - Fix behavior of manual fetcher keys when not opted into `future.v7_fetcherPersist`
+* **Release Metadata:** Prepared the 1.18.0 release by updating package metadata and the runtime `VERSION` value. (__#11003__)
 
-## 1.21.0
+## 🌟 New Contributors
 
-### Minor Changes
+We are thrilled to welcome our new contributors. Thank you for helping improve axios:
 
-- - Log deprecation warnings for v7 flags ([#11750](https://github.com/remix-run/react-router/pull/11750))
-  - Add deprecation warnings to `json`/`defer` in favor of returning raw objects
-    - These methods will be removed in React Router v7
+* __@drori12__ (__#10984__)
+* __@eyupcanakman__ (__#10899__)
+* __@Adi-Beker__ (__#10995__)
 
-### Patch Changes
+[Full Changelog](https://github.com/axios/axios/compare/v1.17.0...v1.18.0)
 
-- Update JSDoc URLs for new website structure (add /v6/ segment) ([#12141](https://github.com/remix-run/react-router/pull/12141))
+## v1.17.0 — June 1, 2026
 
-## 1.20.0
+This release adds Node HTTP zstd decompression, hardens config and release workflows, and fixes authentication, header, proxy, and type-handling regressions.
 
-### Minor Changes
+## 🔒 Security Fixes
 
-- Stabilize `unstable_patchRoutesOnNavigation` ([#11973](https://github.com/remix-run/react-router/pull/11973))
-  - Add new `PatchRoutesOnNavigationFunctionArgs` type for convenience ([#11967](https://github.com/remix-run/react-router/pull/11967))
-- Stabilize `unstable_dataStrategy` ([#11974](https://github.com/remix-run/react-router/pull/11974))
-- Stabilize the `unstable_flushSync` option for navigations and fetchers ([#11989](https://github.com/remix-run/react-router/pull/11989))
-- Stabilize the `unstable_viewTransition` option for navigations and the corresponding `unstable_useViewTransitionState` hook ([#11989](https://github.com/remix-run/react-router/pull/11989))
+* **Config Hardening:** Guarded `socketPath`, `params`, and `paramsSerializer` reads with own-property checks to prevent inherited prototype values from affecting request behavior, including SSRF-sensitive paths. (__#10901__, __#10922__)
+* **Release Publishing:** Switched the publish workflow to npm staged publishing for safer, auditable package releases with provenance. (__#10926__)
 
-### Patch Changes
+## 🚀 New Features
 
-- Fix bug when submitting to the current contextual route (parent route with an index child) when an `?index` param already exists from a prior submission ([#12003](https://github.com/remix-run/react-router/pull/12003))
-- Fix `useFormAction` bug - when removing `?index` param it would not keep other non-Remix `index` params ([#12003](https://github.com/remix-run/react-router/pull/12003))
-- Fix bug with fetchers not persisting `preventScrollReset` through redirects during concurrent fetches ([#11999](https://github.com/remix-run/react-router/pull/11999))
-- Remove internal cache to fix issues with interrupted `patchRoutesOnNavigation` calls ([#12055](https://github.com/remix-run/react-router/pull/12055))
-  - We used to cache in-progress calls to `patchRoutesOnNavigation` internally so that multiple navigations with the same start/end would only execute the function once and use the same promise
-  - However, this approach was at odds with `patch` short circuiting if a navigation was interrupted (and the `request.signal` aborted) since the first invocation's `patch` would no-op
-  - This cache also made some assumptions as to what a valid cache key might be - and is oblivious to any other application-state changes that may have occurred
-  - So, the cache has been removed because in _most_ cases, repeated calls to something like `import()` for async routes will already be cached automatically - and if not it's easy enough for users to implement this cache in userland
-- Avoid unnecessary `console.error` on fetcher abort due to back-to-back revalidation calls ([#12050](https://github.com/remix-run/react-router/pull/12050))
-- Expose errors thrown from `patchRoutesOnNavigation` directly to `useRouteError` instead of wrapping them in a 400 `ErrorResponse` instance ([#12111](https://github.com/remix-run/react-router/pull/12111))
-- Fix types for `RouteObject` within `PatchRoutesOnNavigationFunction`'s `patch` method so it doesn't expect agnostic route objects passed to `patch` ([#11967](https://github.com/remix-run/react-router/pull/11967))
-- Fix bugs with `partialHydration` when hydrating with errors ([#12070](https://github.com/remix-run/react-router/pull/12070))
-- Remove internal `discoveredRoutes` FIFO queue from `unstable_patchRoutesOnNavigation` ([#11977](https://github.com/remix-run/react-router/pull/11977))
+* **HTTP Compression:** Added Node HTTP adapter support for zstd response decompression, with `transitional.advertiseZstdAcceptEncoding` controlling whether `zstd` is advertised in `Accept-Encoding`. (__#6792__, __#10920__)
 
-## 1.19.2
+## 🐛 Bug Fixes
 
-### Patch Changes
+* **Authentication Handling:** Restored Basic auth on same-origin Node redirects while continuing to strip credentials cross-origin, and aligned the fetch adapter with HTTP adapter behavior for URL-embedded Basic auth. (__#10929__, __#10896__)
+* **Proxy TLS:** Preserved user `httpsAgent` TLS options when tunneling HTTPS requests through HTTP CONNECT proxies. (__#10957__)
+* **React Native FormData:** Cleared default `Content-Type` for React Native `FormData` so multipart boundaries can be generated correctly. (__#10898__)
+* **Headers:** Silently skipped empty or whitespace-only header names instead of throwing, matching parsed-header behavior and avoiding React Native response crashes. (__#10875__)
+* **Request Data Merging:** Preserved enumerable symbol keys when cloning plain request data through axios merge logic. (__#10812__)
+* **Bundler Compatibility:** Converted `resolveConfig` from an arrow default export to a named function export to avoid webpack and Babel transform interop failures. (__#10891__)
+* **Types:** Corrected `AxiosHeaders.toJSON()` return types and updated CommonJS `isCancel` typings to narrow to `CanceledError<T>`. (__#10956__, __#10952__)
+* **Build Tooling:** Avoided emitting a null `Authorization` header from the GitHub build helper when `GITHUB_TOKEN` is unset. (__#10931__)
 
-- Update the `unstable_dataStrategy` API to allow for more advanced implementations ([#11943](https://github.com/remix-run/react-router/pull/11943))
-  - Rename `unstable_HandlerResult` to `unstable_DataStrategyResult`
-  - The return signature has changed from a parallel array of `unstable_DataStrategyResult[]` (parallel to `matches`) to a key/value object of `routeId => unstable_DataStrategyResult`
-    - This allows you to more easily decide to opt-into or out-of revalidating data that may not have been revalidated by default (via `match.shouldLoad`)
-    - ⚠️ This is a breaking change if you've currently adopted `unstable_dataStrategy`
-  - Added a new `fetcherKey` parameter to `unstable_dataStrategy` to allow differentiation from navigational and fetcher calls
-  - You should now return/throw a result from your `handlerOverride` instead of returning a `DataStrategyResult`
-    - If you are aggregating the results of `match.resolve()` into a final results object you should not need to think about the `DataStrategyResult` type
-    - If you are manually filling your results object from within your `handlerOverride`, then you will need to assign a `DataStrategyResult` as the value so React Router knows if it's a successful execution or an error.
-- Preserve view transition through redirects ([#11925](https://github.com/remix-run/react-router/pull/11925))
-- Fix blocker usage when `blocker.proceed` is called quickly/synchronously ([#11930](https://github.com/remix-run/react-router/pull/11930))
-- Preserve pending view transitions through a router revalidation call ([#11917](https://github.com/remix-run/react-router/pull/11917))
+## 🔧 Maintenance & Chores
 
-## 1.19.1
+* **HTTP/2 Internals:** Extracted `Http2Sessions` into its own helper module and added direct unit coverage for session pooling, timeout, and cleanup behavior. (__#10861__)
+* **Package Publishing:** Reduced published package size by switching to a `files` allowlist and dropping unneeded unminified bundle source maps. (__#10939__)
+* **CI and Release Automation:** Added bundle-size reporting, moved reports to the job summary, fixed bundle-size comparison coverage, added Node 26 to the matrix, pinned npm for staged publishing, and prepared the 1.17.0 release. (__#10907__, __#10911__, __#10916__, __#10927__, __#10935__, __#10983__)
+* **Developer Workflow:** Added a dev container and iterated on OpenSpec workflow files before removing them from the release branch. (__#10925__, __#10914__, __#10958__)
+* **Documentation and Policy:** Updated disclosure, contributor, collaboration, threat-model, advanced docs, README badges, release notes, moderator configuration, and project metadata. (__#10890__, __#10889__, __#10921__, __#10945__, __#10905__, __#10933__, __#10915__, __#10887__, __#10955__)
+* **Dependencies:** Bumped Babel tooling, Commitlint, ESLint, Rollup, Globals, Vitest, Playwright, `fs-extra`, `qs`, docs dependencies, and GitHub Actions dependencies including `actions/dependency-review-action` and `zizmorcore/zizmor-action`. (__#10871__, __#10879__, __#10918__, __#10919__, __#10934__, __#10947__, __#10954__, __#10960__)
 
-### Patch Changes
+## 🌟 New Contributors
 
-- Fog of War: Update `unstable_patchRoutesOnMiss` logic so that we call the method when we match routes with dynamic param or splat segments in case there exists a higher-scoring static route that we've not yet discovered. ([#11883](https://github.com/remix-run/react-router/pull/11883))
+We are thrilled to welcome our new contributors. Thank you for helping improve axios:
 
-  - We also now leverage an internal FIFO queue of previous paths we've already called `unstable_patchRouteOnMiss` against so that we don't re-call on subsequent navigations to the same path
+* __@BasixKOR__ (__#6792__)
+* __@carladams1299-lab__ (__#10861__)
+* __@LaplaceYoung__ (__#10812__)
+* __@JamieMagee__ (__#10939__)
+* __@RonGamzu__ (__#10905__)
+* __@sapirbaruch__ (__#10891__)
+* __@nezukoagent__ (__#10901__)
+* __@devareddy05__ (__#10929__)
+* __@Mohammad-Faiz-Cloud-Engineer__ (__#10922__)
+* __@azandabot__ (__#10931__)
+* __@niksy__ (__#10896__)
 
-- Rename `unstable_patchRoutesOnMiss` to `unstable_patchRoutesOnNavigation` to match new behavior ([#11888](https://github.com/remix-run/react-router/pull/11888))
+[Full Changelog](https://github.com/axios/axios/compare/v1.16.1...v1.17.0)
 
-## 1.19.0
+## v1.16.1 — May 13, 2026
 
-### Minor Changes
+This release ships a defence-in-depth fix for prototype pollution in `formDataToJSON`, hardens proxy and CI workflows, restores Webpack 4 compatibility for the fetch adapter, and includes several small bug fixes and maintenance improvements.
+
+## 🔒 Security Fixes
+
+* **Prototype Pollution Defence-in-Depth:** Hardened `formDataToJSON` against already-polluted `Object.prototype` by walking own properties only, so attacker-controlled keys inherited from a poisoned prototype cannot propagate through deserialization. (__#7413__)
+* **Proxy Cleartext Leak:** Fixed an issue where HTTPS request data could be transmitted in cleartext to an HTTP proxy under certain configurations. (__#10858__)
+* **CI Cache Removal:** Removed all GitHub Actions caches as a defence-in-depth measure against cache poisoning vectors in the build pipeline. (__#10882__)
+
+## 🐛 Bug Fixes
+
+* **Data URI Parsing:** Updated the `fromDataURI` regex to match RFC 2397 more strictly, fixing edge cases in `data:` URL handling. (__#10829__)
+* **Unicode Headers:** Preserved Unicode header values when running through request interceptors, so non-ASCII header content is no longer corrupted before dispatch. (__#10850__)
+* **XHR Upload Progress:** Guarded against malformed `ProgressEvent` payloads emitted by some environments during XHR upload, preventing crashes when `loaded` / `total` are missing or invalid. (__#10868__)
+* **Webpack 4 Fetch Adapter:** Fixed an "unexpected token" error caused by syntax in the fetch adapter that Webpack 4 could not parse, restoring compatibility for legacy bundler users. (__#10864__)
+* **Type Definitions:** Made `parseReviver` `context.source` optional in the type definitions to align with the ES2023 specification. (__#10837__)
+* **URL Object Support Reverted:** Reverted the change that allowed passing a `URL` object as `config.url` (originally __#10866__) due to regressions; this support will be reintroduced in a later release once the underlying issues are addressed. (__#10874__)
+
+## 🔧 Maintenance & Chores
 
-- Add a new `replace(url, init?)` alternative to `redirect(url, init?)` that performs a `history.replaceState` instead of a `history.pushState` on client-side navigation redirects ([#11811](https://github.com/remix-run/react-router/pull/11811))
-- Add a new `unstable_data()` API for usage with Remix Single Fetch ([#11836](https://github.com/remix-run/react-router/pull/11836))
-  - This API is not intended for direct usage in React Router SPA applications
-  - It is primarily intended for usage with `createStaticHandler.query()` to allow loaders/actions to return arbitrary data + `status`/`headers` without forcing the serialization of data into a `Response` instance
-  - This allows for more advanced serialization tactics via `unstable_dataStrategy` such as serializing via `turbo-stream` in Remix Single Fetch
-  - ⚠️ This removes the `status` field from `HandlerResult`
-    - If you need to return a specific `status` from `unstable_dataStrategy` you should instead do so via `unstable_data()`
+* **Cycle Detection Refactor:** Replaced the array-based cycle tracker in `toJSONObject` with a `WeakSet`, improving performance and memory behaviour on large nested structures. (__#10832__)
+* **composeSignals Cleanup:** Refactored `composeSignals` to use a clearer early-return structure, simplifying the cancellation/abort composition path. (__#10844__)
+* **AI Readiness & Repo Docs:** Added `AGENTS.md` and related contributor-guide updates for both human and AI agents, plus post-release documentation improvements. (__#10835__, __#10841__)
+* **Docs Improvements:** Clarified the GET request example, fixed the interceptor `eject` example to reference the correct instance, and corrected the Buzzoid sponsor description in the README. (__#10836__, __#10853__, __#10856__)
+* **Sponsorship Tooling:** Fixed empty sponsor arrays in the sponsor processing script, added the ability to inject additional sponsors, updated the sponsorship link, and added a Twicsy advertisement entry. (__#10843__, __#10859__, __#10869__)
+* **Dependencies:** Bumped `@commitlint/cli` from 20.5.0 to 20.5.2. (__#10846__)
 
-### Patch Changes
+## 🌟 New Contributors
 
-- Fix internal cleanup of interrupted fetchers to avoid invalid revalidations on navigations ([#11839](https://github.com/remix-run/react-router/pull/11839))
-  - When a `fetcher.load` is interrupted by an `action` submission, we track it internally and force revalidation once the `action` completes
-  - We previously only cleared out this internal tracking info on a successful _navigation_ submission
-  - Therefore, if the `fetcher.load` was interrupted by a `fetcher.submit`, then we wouldn't remove it from this internal tracking info on successful load (incorrectly)
-  - And then on the next navigation it's presence in the internal tracking would automatically trigger execution of the `fetcher.load` again, ignoring any `shouldRevalidate` logic
-  - This fix cleans up the internal tracking so it applies to both navigation submission and fetcher submissions
-- Fix initial hydration behavior when using `future.v7_partialHydration` along with `unstable_patchRoutesOnMiss` ([#11838](https://github.com/remix-run/react-router/pull/11838))
-  - During initial hydration, `router.state.matches` will now include any partial matches so that we can render ancestor `HydrateFallback` components
+We are thrilled to welcome our new contributors. Thank you for helping improve axios:
 
-## 1.18.0
+* __@hpinmetaverse__ (__#10836__)
+* __@tommyhgunz14__ (__#7413__)
+* __@abhu85__ (__#10829__)
+* __@divyanshuraj1095__ (__#10853__)
+* __@sagodi97__ (__#10856__)
+* __@rkdfx__ (__#10868__)
+* __@Liuwei1125__ (__#10866__)
 
-### Minor Changes
+[Full Changelog](https://github.com/axios/axios/compare/v1.16.0...v1.16.1)
 
-- Stabilize `future.unstable_skipActionErrorRevalidation` as `future.v7_skipActionErrorRevalidation` ([#11769](https://github.com/remix-run/react-router/pull/11769))
-  - When this flag is enabled, actions will not automatically trigger a revalidation if they return/throw a `Response` with a `4xx`/`5xx` status code
-  - You may still opt-into revalidation via `shouldRevalidate`
-  - This also changes `shouldRevalidate`'s `unstable_actionStatus` parameter to `actionStatus`
+## v1.16.0 — May 2, 2026
 
-### Patch Changes
+This release adds support for the QUERY HTTP method and a new `ECONNREFUSED` error constant, lands a substantial wave of HTTP, fetch, and XHR adapter bug fixes around redirects, aborts, headers, and timeouts, and welcomes 23 new contributors.
 
-- Fix bubbling of errors thrown from `unstable_patchRoutesOnMiss` ([#11786](https://github.com/remix-run/react-router/pull/11786))
-- Fix hydration in SSR apps using `unstable_patchRoutesOnMiss` that matched a splat route on the server ([#11790](https://github.com/remix-run/react-router/pull/11790))
+## ⚠️ Notable Changes
 
-## 1.17.1
+A handful of fixes in this release are either security-adjacent or change observable behaviour. Please review before upgrading:
 
-### Patch Changes
+- **Fetch adapter now enforces `maxBodyLength` and `maxContentLength`.** These limits were silently ignored on the fetch adapter prior to 1.16.0 — anyone relying on them as a safety net (DoS protection, accidental large uploads) had no protection. (**#10795**)
+- **Proxy requests now preserve user-supplied `Host` headers.** Previously, the proxy path could overwrite a custom `Host`. Virtual-host-style routing through a proxy will now behave correctly. (**#10822**)
+- **Basic auth credentials embedded in URLs are now URL-decoded.** If you have percent-encoded credentials in a URL (e.g. `https://user:p%40ss@host`), the decoded value is what now goes on the wire. (**#10825**)
+- **`parseProtocol` now strictly requires a colon in the protocol separator.** Strings that loosely parsed as protocols before may no longer match. (**#10729**)
+- **Deprecated `unescape()` replaced with modern UTF-8 encoding.** Non-ASCII URL handling is now spec-correct; consumers depending on legacy `unescape()` quirks may see different output bytes. (**#7378**)
+- **`transformRequest` input typing change was reverted.** The typing change introduced in #10745 was reverted in #10810 after follow-up review — net behavior is unchanged from 1.15.2. (**#10745**, **#10810**)
 
-- Fog of War (unstable): Trigger a new `router.routes` identity/reflow during route patching ([#11740](https://github.com/remix-run/react-router/pull/11740))
-- Fog of War (unstable): Fix initial matching when a splat route matches ([#11759](https://github.com/remix-run/react-router/pull/11759))
+## 🚀 New Features
 
-## 1.17.0
+- **QUERY HTTP Method:** Added support for the QUERY HTTP method across adapters and type definitions. (**#10802**)
+- **ECONNREFUSED Error Constant:** Exposed `ECONNREFUSED` as a constant on `AxiosError` so callers can match connection-refused failures without comparing string literals (closes #6485). (**#10680**)
+- **Encode Helper Export:** Exported the internal `encode` helper from `buildURL` so userland param serializers can reuse the same encoding logic that axios uses internally. (**#6897**)
 
-### Minor Changes
+## 🐛 Bug Fixes
 
-- Add support for Lazy Route Discovery (a.k.a. Fog of War) ([#11626](https://github.com/remix-run/react-router/pull/11626))
+- **HTTP Adapter — Redirects & Headers:** Cleared stale headers when a redirect targets a no-proxy host, fixed the redirect listener chain so listeners no longer stack across hops, restored the missing `requestDetails` argument on `beforeRedirect`, preserved user-supplied `Host` headers when forwarding through a proxy, and properly URL-decoded basic auth credentials. (**#10794**, **#10800**, **#6241**, **#10822**, **#10825**)
+- **HTTP Adapter — Streams & Timeouts:** Preserved the partial response object on `AxiosError` when a stream is aborted after headers arrive, honoured the `timeout` option during the connect phase when redirects are disabled, and resolved an unsettled-promise hang when an aborted request was combined with compression and `maxRedirects: 0`. (**#10708**, **#10819**, **#7149**)
+- **Fetch Adapter:** Enforced `maxBodyLength` / `maxContentLength` in the fetch adapter, set the `User-Agent` header to match the HTTP adapter, preserved the original abort reason instead of replacing it with a generic error, and deferred global access so importing the module no longer throws a `TypeError` in restricted environments. (**#10795**, **#10772**, **#10806**, **#7260**)
+- **XHR Adapter:** Unsubscribed the `cancelToken` and `AbortSignal` listeners on the error, timeout, and abort code paths to prevent leaked subscriptions. (**#10787**)
+- **Error Handling:** Attached the parsed response to `AxiosError` when `JSON.parse` fails inside `dispatchRequest`, prevented `settle` from emitting `undefined` error codes, and tightened the `parseProtocol` regex to require a colon in the protocol separator. (**#10724**, **#7276**, **#10729**)
+- **Types & Exports:** Aligned the CommonJS `CancelToken` typings with the ESM build, fixed a compiler error caused by `RawAxiosHeaders`, and re-exported `create` from the package index. (**#7414**, **#6389**, **#6460**)
+- **UTF-8 Encoding:** Replaced the deprecated `unescape()` call with a modern UTF-8 encoding implementation. (**#7378**)
+- **Misc Cleanup:** Resolved a batch of small inconsistencies and gadget-level issues across the codebase. (**#10833**)
 
-  - RFC: <https://github.com/remix-run/react-router/discussions/11113>
-  - `unstable_patchRoutesOnMiss` docs: <https://reactrouter.com/v6/routers/create-browser-router>
+## 🔧 Maintenance & Chores
 
-## 1.16.1
+- **Refactor — ES6 Modernisation:** Modernised the `utils` module and XHR adapter to use ES6 features, and tidied the multipart boundary error message. (**#10588**, **#7419**)
+- **Tests:** Hardened the HTTP test server lifecycle to fix flaky `FormData` EPIPE failures, fixed Win32 platform support for the pipe tests, and corrected an incorrect test assumption. (**#10820**, **#10791**, **#10796**)
+- **Docs:** Documented `paramsSerializer.encode` for strict RFC 3986 query encoding, updated the `parseReviver` TypeScript definitions and configuration docs for ES2023, added timeout guidance to the README's first async example, and expanded notes around the recent type changes. (**#10821**, **#10782**, **#10759**, **#10804**)
+- **Reverted:** Reverted the `transformRequest` input typing change from #10745 after follow-up review. (**#10745**, **#10810**)
+- **Dependencies:** Bumped `actions/setup-node`, the `github-actions` group, and `postcss` (in `/docs`) to their latest versions. (**#10785**, **#10813**, **#10814**)
+- **Release:** Updated changelog and packages, and prepared the 1.16.0 release. (**#10790**, **#10834**)
 
-### Patch Changes
+## 🌟 New Contributors
 
-- Support `unstable_dataStrategy` on `staticHandler.queryRoute` ([#11515](https://github.com/remix-run/react-router/pull/11515))
+We are thrilled to welcome our new contributors. Thank you for helping improve axios:
 
-## 1.16.0
+- **@singhankit001** (**#10588**)
+- **@cuiweixie** (**#7419**)
+- **@iruizsalinas** (**#10787**)
+- **@MarcosNocetti** (**#10680**)
+- **@deepview-autofix** (**#10729**)
+- **@atharvasingh7007** (**#10745**)
+- **@OfekDanny** (**#10772**)
+- **@mnahkies** (**#7414**)
+- **@tboyila** (**#10759**)
+- **@Kingo64** (**#6897**)
+- **@ramram1048** (**#6389**)
+- **@FLNacif** (**#6460**)
+- **@zozo123** (**#10806**)
+- **@pierluigilenoci** (**#10802**)
+- **@afurm** (**#10708**)
+- **@karan-lrn** (**#7378**)
+- **@ebeigarts** (**#7149**)
+- **@Raymondo97** (**#10782**)
+- **@mixelburg** (**#10821**)
+- **@ashishkr96** (**#10822**)
+- **@cyphercodes** (**#10819**)
+- **@Jye10032** (**#7260**)
+- **@VeerShah41** (**#7276**)
 
-### Minor Changes
+[Full Changelog](https://github.com/axios/axios/compare/v1.15.2...v1.16.0)
 
-- Add a new `unstable_dataStrategy` configuration option ([#11098](https://github.com/remix-run/react-router/pull/11098))
-  - This option allows Data Router applications to take control over the approach for executing route loaders and actions
-  - The default implementation is today's behavior, to fetch all loaders in parallel, but this option allows users to implement more advanced data flows including Remix single-fetch, middleware/context APIs, automatic loader caching, and more
-- Move `unstable_dataStrategy` from `createStaticHandler` to `staticHandler.query` so it can be request-specific for use with the `ResponseStub` approach in Remix. It's not really applicable to `queryRoute` for now since that's a singular handler call anyway so any pre-processing/post/processing could be done there manually. ([#11377](https://github.com/remix-run/react-router/pull/11377))
-- Add a new `future.unstable_skipActionRevalidation` future flag ([#11098](https://github.com/remix-run/react-router/pull/11098))
-  - Currently, active loaders revalidate after any action, regardless of the result
-  - With this flag enabled, actions that return/throw a 4xx/5xx response status will no longer automatically revalidate
-  - This should reduce load on your server since it's rare that a 4xx/5xx should actually mutate any data
-  - If you need to revalidate after a 4xx/5xx result with this flag enabled, you can still do that via returning `true` from `shouldRevalidate`
-  - `shouldRevalidate` now also receives a new `unstable_actionStatus` argument alongside `actionResult` so you can make decision based on the status of the `action` response without having to encode it into the action data
-- Added a `skipLoaderErrorBubbling` flag to `staticHandler.query` to disable error bubbling on loader executions for single-fetch scenarios where the client-side router will handle the bubbling ([#11098](https://github.com/remix-run/react-router/pull/11098))
+## v1.15.2 - April 21, 2026
 
-## 1.15.3
+This release delivers prototype-pollution hardening for the Node HTTP adapter, adds an opt-in `allowedSocketPaths` allowlist to mitigate SSRF via Unix domain sockets, fixes a keep-alive socket memory leak, and ships supply-chain hardening across CI and security docs.
 
-### Patch Changes
+## 🔒 Security Fixes
 
-- Fix a `future.v7_partialHydration` bug that would re-run loaders below the boundary on hydration if SSR loader errors bubbled to a parent boundary ([#11324](https://github.com/remix-run/react-router/pull/11324))
-- Fix a `future.v7_partialHydration` bug that would consider the router uninitialized if a route did not have a loader ([#11325](https://github.com/remix-run/react-router/pull/11325))
+- **Prototype Pollution Hardening (HTTP Adapter):** Hardened the Node HTTP adapter and `resolveConfig`/`mergeConfig`/validator paths to read only own properties and use null-prototype config objects, preventing polluted `auth`, `baseURL`, `socketPath`, `beforeRedirect`, and `insecureHTTPParser` from influencing requests. (**#10779**)
+- **SSRF via `socketPath`:** Rejects non-string `socketPath` values and adds an opt-in `allowedSocketPaths` config option to restrict permitted Unix domain socket paths, returning `AxiosError` `ERR_BAD_OPTION_VALUE` on mismatch. (**#10777**)
+- **Supply-chain Hardening:** Added `.npmrc` with `ignore-scripts=true`, lockfile lint CI, non-blocking reproducible build diff, scoped CODEOWNERS, expanded `SECURITY.md`/`THREATMODEL.md` with provenance verification (`npm audit signatures`), 60-day resolution policy, and maintainer incident-response runbook. (**#10776**)
 
-## 1.15.2
+## 🚀 New Features
 
-### Patch Changes
+- **`allowedSocketPaths` Config Option:** New request config option (and TypeScript types) to allowlist Unix domain socket paths used by the Node http adapter; backwards compatible when unset. (**#10777**)
 
-- Preserve hydrated errors during partial hydration runs ([#11305](https://github.com/remix-run/react-router/pull/11305))
+## 🐛 Bug Fixes
 
-## 1.15.1
+- **Keep-alive Socket Memory Leak:** Installs a single per-socket `error` listener tracking the active request via `kAxiosSocketListener`/`kAxiosCurrentReq`, eliminating per-request listener accumulation, `MaxListenersExceededWarning`, and linear heap growth under concurrent or long-running keep-alive workloads (fixes #10780). (**#10788**)
 
-### Patch Changes
+## 🔧 Maintenance & Chores
 
-- Fix encoding/decoding issues with pre-encoded dynamic parameter values ([#11199](https://github.com/remix-run/react-router/pull/11199))
+- **Changelog:** Updated `CHANGELOG.md` with v1.15.1 release notes. (**#10781**)
 
-## 1.15.0
+[Full Changelog](https://github.com/axios/axios/compare/v1.15.1...v1.15.2)
 
-### Minor Changes
+---
 
-- Add a `createStaticHandler` `future.v7_throwAbortReason` flag to throw `request.signal.reason` (defaults to a `DOMException`) when a request is aborted instead of an `Error` such as `new Error("query() call aborted: GET /path")` ([#11104](https://github.com/remix-run/react-router/pull/11104))
+## v1.15.1 - April 19, 2026
 
-  - Please note that `DOMException` was added in Node v17 so you will not get a `DOMException` on Node 16 and below.
+This release ships a coordinated set of security hardening fixes across headers, body/redirect limits, multipart handling, and XSRF/prototype-pollution vectors, alongside a broad sweep of bug fixes, test migrations, and threat-model documentation updates.
 
-### Patch Changes
+## 🔒 Security Fixes
 
-- Respect the `ErrorResponse` status code if passed to `getStaticContextFormError` ([#11213](https://github.com/remix-run/react-router/pull/11213))
+- **Header Injection Hardening:** Tightened validation and sanitisation across request header construction to close the header-injection attack surface. (**#10749**)
 
-## 1.14.2
+- **CRLF Stripping in Multipart Headers:** Correctly strips CR/LF from multipart header values to prevent injection via field names and filenames. (**#10758**)
 
-### Patch Changes
+- **Prototype Pollution / Auth Bypass:** Replaced unsafe `in` checks with `hasOwnProperty` to prevent authentication bypass via prototype pollution on config objects, with additional regression tests. (**#10761**, **#10760**)
 
-- Fix bug where dashes were not picked up in dynamic parameter names ([#11160](https://github.com/remix-run/react-router/pull/11160))
-- Do not attempt to deserialize empty JSON responses ([#11164](https://github.com/remix-run/react-router/pull/11164))
+- **`withXSRFToken` Truthy Bypass:** Short-circuits on any truthy non-boolean value, so an ambiguous config no longer silently leaks the XSRF token cross-origin. (**#10762**)
 
-## 1.14.1
+- **`maxBodyLength` With Zero Redirects:** Enforces `maxBodyLength` even when `maxRedirects` is set to `0`, closing a bypass path for oversized request bodies. (**#10753**)
 
-### Patch Changes
+- **Streamed Response `maxContentLength` Bypass:** Applies `maxContentLength` to streamed responses that previously bypassed the cap. (**#10754**)
 
-- Fix bug with `route.lazy` not working correctly on initial SPA load when `v7_partialHydration` is specified ([#11121](https://github.com/remix-run/react-router/pull/11121))
-- Fix bug preventing revalidation from occurring for persisted fetchers unmounted during the `submitting` phase ([#11102](https://github.com/remix-run/react-router/pull/11102))
-- De-dup relative path logic in `resolveTo` ([#11097](https://github.com/remix-run/react-router/pull/11097))
+- **Follow-up CVE Completion:** Completes an earlier incomplete CVE fix to fully close the regression window. (**#10755**)
 
-## 1.14.0
+## 🚀 New Features
 
-### Minor Changes
+- **AI-Based Docs Translations:** Initial scaffold for AI-assisted translations of the documentation site. (**#10705**)
 
-- Added a new `future.v7_partialHydration` future flag that enables partial hydration of a data router when Server-Side Rendering. This allows you to provide `hydrationData.loaderData` that has values for _some_ initially matched route loaders, but not all. When this flag is enabled, the router will call `loader` functions for routes that do not have hydration loader data during `router.initialize()`, and it will render down to the deepest provided `HydrateFallback` (up to the first route without hydration data) while it executes the unhydrated routes. ([#11033](https://github.com/remix-run/react-router/pull/11033))
+- **`Location` Request Header Type:** Adds `Location` to `CommonRequestHeadersList` for accurate typing of redirect-aware requests. (**#7528**)
 
-  For example, the following router has a `root` and `index` route, but only provided `hydrationData.loaderData` for the `root` route. Because the `index` route has a `loader`, we need to run that during initialization. With `future.v7_partialHydration` specified, `<RouterProvider>` will render the `RootComponent` (because it has data) and then the `IndexFallback` (since it does not have data). Once `indexLoader` finishes, application will update and display `IndexComponent`.
+## 🐛 Bug Fixes
 
-  ```jsx
-  let router = createBrowserRouter(
-    [
-      {
-        id: "root",
-        path: "/",
-        loader: rootLoader,
-        Component: RootComponent,
-        Fallback: RootFallback,
-        children: [
-          {
-            id: "index",
-            index: true,
-            loader: indexLoader,
-            Component: IndexComponent,
-            HydrateFallback: IndexFallback,
-          },
-        ],
-      },
-    ],
-    {
-      future: {
-        v7_partialHydration: true,
-      },
-      hydrationData: {
-        loaderData: {
-          root: { message: "Hydrated from Root!" },
-        },
-      },
-    }
-  );
-  ```
+- **FormData Handling:** Removes `Content-Type` when no boundary is present on `FormData` fetch requests, supports multi-select fields, cancels `request.body` instead of the source stream on fetch abort, and fixes a recursion bug in form-data serialisation. (**#7314**, **#10676**, **#10702**, **#10726**)
 
-  If the above example did not have an `IndexFallback`, then `RouterProvider` would instead render the `RootFallback` while it executed the `indexLoader`.
+- **HTTP Adapter:** Handles socket-only request errors without leaking keep-alive listeners. (**#10576**)
 
-  **Note:** When `future.v7_partialHydration` is provided, the `<RouterProvider fallbackElement>` prop is ignored since you can move it to a `Fallback` on your top-most route. The `fallbackElement` prop will be removed in React Router v7 when `v7_partialHydration` behavior becomes the standard behavior.
+- **Progress Events:** Clamps `loaded` to `total` for computable upload/download progress events. (**#7458**)
 
-- Add a new `future.v7_relativeSplatPath` flag to implement a breaking bug fix to relative routing when inside a splat route. ([#11087](https://github.com/remix-run/react-router/pull/11087))
+- **Types:** Aligns `runWhen` type with the runtime behaviour in `InterceptorManager` and makes response header keys case-insensitive. (**#7529**, **#10677**)
 
-  This fix was originally added in [#10983](https://github.com/remix-run/react-router/issues/10983) and was later reverted in [#11078](https://github.com/remix-run/react-router/pull/11078) because it was determined that a large number of existing applications were relying on the buggy behavior (see [#11052](https://github.com/remix-run/react-router/issues/11052))
+- **`buildFullPath`:** Uses strict equality in the base/relative URL check. (**#7252**)
 
-  **The Bug**
-  The buggy behavior is that without this flag, the default behavior when resolving relative paths is to _ignore_ any splat (`*`) portion of the current route path.
+- **`AxiosURLSearchParams` Regex:** Improves the regex used for param serialisation to avoid edge-case mismatches. (**#10736**)
 
-  **The Background**
-  This decision was originally made thinking that it would make the concept of nested different sections of your apps in `<Routes>` easier if relative routing would _replace_ the current splat:
+- **Resilient Value Parsing:** Parses out header/config values instead of throwing on malformed input. (**#10687**)
 
-  ```jsx
-  <BrowserRouter>
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="dashboard/*" element={<Dashboard />} />
-    </Routes>
-  </BrowserRouter>
-  ```
+- **Docs Artefact Cleanup:** Removes the docs content that was incorrectly committed. (**#10727**)
 
-  Any paths like `/dashboard`, `/dashboard/team`, `/dashboard/projects` will match the `Dashboard` route. The dashboard component itself can then render nested `<Routes>`:
+## 🔧 Maintenance & Chores
 
-  ```jsx
-  function Dashboard() {
-    return (
-      <div>
-        <h2>Dashboard</h2>
-        <nav>
-          <Link to="/">Dashboard Home</Link>
-          <Link to="team">Team</Link>
-          <Link to="projects">Projects</Link>
-        </nav>
+- **Threat Model & Security Docs:** Ongoing refinement of `THREATMODEL.md`, including Hopper security update, TLS and tag-replay wording, mitigation descriptions, decompression-bomb guidance, and further cleanup. (**#10672**, **#10715**, **#10718**, **#10722**, **#10763**, **#10765**)
 
-        <Routes>
-          <Route path="/" element={<DashboardHome />} />
-          <Route path="team" element={<DashboardTeam />} />
-          <Route path="projects" element={<DashboardProjects />} />
-        </Routes>
-      </div>
-    );
-  }
-  ```
+- **Test Coverage & Migration:** Expanded `shouldBypassProxy` coverage for wildcard/IPv6/edge cases, documented and tested `AxiosError.status`, and migrated `progressEventReducer` tests to Vitest. (**#10723**, **#10725**, **#10741**)
 
-  Now, all links and route paths are relative to the router above them. This makes code splitting and compartmentalizing your app really easy. You could render the `Dashboard` as its own independent app, or embed it into your large app without making any changes to it.
+- **Type Refactor:** Uses TypeScript utility types to deduplicate literal unions. (**#7520**)
 
-  **The Problem**
+- **Repo & CI:** Adds `CODEOWNERS`, switches v1.x releases to an ephemeral release branch, and removes orphaned Bower support. (**#10739**, **#10738**, **#10746**)
 
-  The problem is that this concept of ignoring part of a path breaks a lot of other assumptions in React Router - namely that `"."` always means the current location pathname for that route. When we ignore the splat portion, we start getting invalid paths when using `"."`:
+## 🌟 New Contributors
 
-  ```jsx
-  // If we are on URL /dashboard/team, and we want to link to /dashboard/team:
-  function DashboardTeam() {
-    // ❌ This is broken and results in <a href="/dashboard">
-    return <Link to=".">A broken link to the Current URL</Link>;
+We are thrilled to welcome our new contributors. Thank you for helping improve axios:
 
-    // ✅ This is fixed but super unintuitive since we're already at /dashboard/team!
-    return <Link to="./team">A broken link to the Current URL</Link>;
-  }
-  ```
+- **@curiouscoder-cmd** (**#7252**)
+- **@tryonelove** (**#7520**)
+- **@darwin808** (**#7314**)
+- **@zoontek** (**#10702**)
+- **@AKIB473** (**#10725**)
 
-  We've also introduced an issue that we can no longer move our `DashboardTeam` component around our route hierarchy easily - since it behaves differently if we're underneath a non-splat route, such as `/dashboard/:widget`. Now, our `"."` links will, properly point to ourself _inclusive of the dynamic param value_ so behavior will break from it's corresponding usage in a `/dashboard/*` route.
+[Full Changelog](https://github.com/axios/axios/compare/v1.15.0...v1.15.1)
 
-  Even worse, consider a nested splat route configuration:
+---
 
-  ```jsx
-  <BrowserRouter>
-    <Routes>
-      <Route path="dashboard">
-        <Route path="*" element={<Dashboard />} />
-      </Route>
-    </Routes>
-  </BrowserRouter>
-  ```
+## v1.15.0 - April 7, 2026
 
-  Now, a `<Link to=".">` and a `<Link to="..">` inside the `Dashboard` component go to the same place! That is definitely not correct!
+This release delivers two critical security patches targeting header injection and SSRF via proxy bypass, adds official runtime support for Deno and Bun, and includes significant CI security hardening.
 
-  Another common issue arose in Data Routers (and Remix) where any `<Form>` should post to it's own route `action` if you the user doesn't specify a form action:
+## 🔒 Security Fixes
 
-  ```jsx
-  let router = createBrowserRouter({
-    path: "/dashboard",
-    children: [
-      {
-        path: "*",
-        action: dashboardAction,
-        Component() {
-          // ❌ This form is broken!  It throws a 405 error when it submits because
-          // it tries to submit to /dashboard (without the splat value) and the parent
-          // `/dashboard` route doesn't have an action
-          return <Form method="post">...</Form>;
-        },
-      },
-    ],
-  });
-  ```
+- **Header Injection (CRLF):** Rejects any header value containing `\r` or `\n` characters to block CRLF injection chains that could be used to exfiltrate cloud metadata (IMDS). Behavior change: headers with CR/LF now throw `"Invalid character in header content"`. (**#10660**)
 
-  This is just a compounded issue from the above because the default location for a `Form` to submit to is itself (`"."`) - and if we ignore the splat portion, that now resolves to the parent route.
+- **SSRF via `no_proxy` Bypass:** Introduces a `shouldBypassProxy` helper that normalises hostnames (strips trailing dots, handles bracketed IPv6) before evaluating `no_proxy`/`NO_PROXY` rules, closing a gap that could cause loopback or internal hosts to be inadvertently proxied. (**#10661**)
 
-  **The Solution**
-  If you are leveraging this behavior, it's recommended to enable the future flag, move your splat to it's own route, and leverage `../` for any links to "sibling" pages:
+## 🚀 New Features
 
-  ```jsx
-  <BrowserRouter>
-    <Routes>
-      <Route path="dashboard">
-        <Route index path="*" element={<Dashboard />} />
-      </Route>
-    </Routes>
-  </BrowserRouter>
+- **Deno & Bun Runtime Support:** Added full smoke test suites for Deno and Bun, with CI workflows that run both runtimes before any release is cut. (**#10652**)
 
-  function Dashboard() {
-    return (
-      <div>
-        <h2>Dashboard</h2>
-        <nav>
-          <Link to="..">Dashboard Home</Link>
-          <Link to="../team">Team</Link>
-          <Link to="../projects">Projects</Link>
-        </nav>
+## 🐛 Bug Fixes
 
-        <Routes>
-          <Route path="/" element={<DashboardHome />} />
-          <Route path="team" element={<DashboardTeam />} />
-          <Route path="projects" element={<DashboardProjects />} />
-        </Router>
-      </div>
-    );
-  }
-  ```
+- **Node.js v22 Compatibility:** Replaced deprecated `url.parse()` calls with the WHATWG `URL`/`URLSearchParams` API across examples, sandbox, and tests, eliminating `DEP0169` deprecation warnings on Node.js v22+. (**#10625**)
 
-  This way, `.` means "the full current pathname for my route" in all cases (including static, dynamic, and splat routes) and `..` always means "my parents pathname".
+## 🔧 Maintenance & Chores
 
-### Patch Changes
+- **CI Security Hardening:** Added [zizmor](https://github.com/zizmorcore/zizmor) GitHub Actions security scanner; switched npm publish to OIDC Trusted Publishing (removing the long-lived `NODE_AUTH_TOKEN`); pinned all action references to full commit SHAs; narrowed workflow permissions to least privilege; gated the publish step behind a dedicated `npm-publish` environment; and blocked the sponsor-block workflow from running on forks. (**#10618**, **#10619**, **#10627**, **#10637**, **#10641**, **#10666**)
 
-- Catch and bubble errors thrown when trying to unwrap responses from `loader`/`action` functions ([#11061](https://github.com/remix-run/react-router/pull/11061))
-- Fix `relative="path"` issue when rendering `Link`/`NavLink` outside of matched routes ([#11062](https://github.com/remix-run/react-router/pull/11062))
+- **Docs:** Clarified HTTP/2 support and the unsupported `httpVersion` option; added documentation for header case preservation; improved the `beforeRedirect` example to prevent accidental credential leakage. (**#10644**, **#10654**, **#10624**)
 
-## 1.13.1
+- **Dependencies:** Bumped `picomatch`, `handlebars`, `serialize-javascript`, `vite` (×3), `denoland/setup-deno`, and 4 additional dev dependencies to latest versions. (**#10564**, **#10565**, **#10567**, **#10568**, **#10572**, **#10574**, **#10663**, **#10664**, **#10665**, **#10669**, **#10670**)
 
-### Patch Changes
+## 🌟 New Contributors
 
-- Revert the `useResolvedPath` fix for splat routes due to a large number of applications that were relying on the buggy behavior (see <https://github.com/remix-run/react-router/issues/11052#issuecomment-1836589329>). We plan to re-introduce this fix behind a future flag in the next minor version. ([#11078](https://github.com/remix-run/react-router/pull/11078))
+We are thrilled to welcome our new contributors. Thank you for helping improve axios:
 
-## 1.13.0
+- **@Kilros0817** (**#10625**)
+- **@shaanmajid** (**#10616**, **#10617**, **#10618**, **#10619**, **#10637**, **#10641**, **#10666**)
+- **@ashstrc** (**#10624**, **#10644**)
+- **@Abhi3975** (**#10589**)
+- **@raashish1601** (**#10573**)
 
-### Minor Changes
+[Full Changelog](https://github.com/axios/axios/compare/v1.14.0...v1.15.0)
 
-- Export the `PathParam` type from the public API ([#10719](https://github.com/remix-run/react-router/pull/10719))
+---
 
-### Patch Changes
+## v1.14.0 - March 27, 2026
 
-- Fix bug with `resolveTo` in splat routes ([#11045](https://github.com/remix-run/react-router/pull/11045))
-  - This is a follow up to [#10983](https://github.com/remix-run/react-router/pull/10983) to handle the few other code paths using `getPathContributingMatches`
-  - This removes the `UNSAFE_getPathContributingMatches` export from `@remix-run/router` since we no longer need this in the `react-router`/`react-router-dom` layers
-- Do not revalidate unmounted fetchers when `v7_fetcherPersist` is enabled ([#11044](https://github.com/remix-run/react-router/pull/11044))
+This release fixes a security vulnerability in the `formidable` dependency, resolves a CommonJS compatibility regression, hardens proxy and HTTP/2 handling, and modernises the build and test toolchain.
 
-## 1.12.0
+## 🔒 Security Fixes
 
-### Minor Changes
+- **Formidable Vulnerability:** Upgraded `formidable` from v2 to v3 to address a reported arbitrary-file vulnerability. Updated test server and assertions to align with the v3 API. (**#7533**)
 
-- Add `unstable_flushSync` option to `router.navigate` and `router.fetch` to tell the React Router layer to opt-out of `React.startTransition` and into `ReactDOM.flushSync` for state updates ([#11005](https://github.com/remix-run/react-router/pull/11005))
+## 🐛 Bug Fixes
 
-### Patch Changes
+- **CommonJS Compatibility:** Restored `require('axios')` in Node.js by correcting the `main` field in `package.json` to point to the built CJS bundle. (**#7532**)
 
-- Fix `relative="path"` bug where relative path calculations started from the full location pathname, instead of from the current contextual route pathname. ([#11006](https://github.com/remix-run/react-router/pull/11006))
+- **Fetch Adapter:** Cancel the `ReadableStream` body after the request stream capability probe to prevent resource leaks. (**#7515**)
 
-  ```jsx
-  <Route path="/a">
-    <Route path="/b" element={<Component />}>
-      <Route path="/c" />
-    </Route>
-  </Route>;
+- **Proxy:** Upgraded `proxy-from-env` to v2 and switched to the named `getProxyForUrl` export, fixing proxy detection from environment variables and resolving CJS bundling errors. (**#7499**)
 
-  function Component() {
-    return (
-      <>
-        {/* This is now correctly relative to /a/b, not /a/b/c */}
-        <Link to=".." relative="path" />
-        <Outlet />
-      </>
-    );
-  }
-  ```
+- **HTTP/2:** Close detached HTTP/2 sessions on timeout to free resources when no new requests arrive. (**#7457**)
 
-## 1.11.0
+- **Headers:** Trim trailing CRLF characters from normalised header values. (**#7456**)
 
-### Minor Changes
+## 🔧 Maintenance & Chores
 
-- Add a new `future.v7_fetcherPersist` flag to the `@remix-run/router` to change the persistence behavior of fetchers when `router.deleteFetcher` is called. Instead of being immediately cleaned up, fetchers will persist until they return to an `idle` state ([RFC](https://github.com/remix-run/remix/discussions/7698)) ([#10962](https://github.com/remix-run/react-router/pull/10962))
+- **Toolchain Modernisation:** Migrated test suite to Vitest, updated ESLint to v10, upgraded Rollup and `@rollup/plugin-babel`, migrated to Husky 9, upgraded TypeScript to latest, and modernised the Express test harness. (**#7484**, **#7489**, **#7498**, **#7505**, **#7506**, **#7507**, **#7508**, **#7509**, **#7510**, **#7516**, **#7522**)
 
-  - This is sort of a long-standing bug fix as the `useFetchers()` API was always supposed to only reflect **in-flight** fetcher information for pending/optimistic UI -- it was not intended to reflect fetcher data or hang onto fetchers after they returned to an `idle` state
-  - Keep an eye out for the following specific behavioral changes when opting into this flag and check your app for compatibility:
-    - Fetchers that complete _while still mounted_ will no longer appear in `useFetchers()`. They served effectively no purpose in there since you can access the data via `useFetcher().data`).
-    - Fetchers that previously unmounted _while in-flight_ will not be immediately aborted and will instead be cleaned up once they return to an `idle` state. They will remain exposed via `useFetchers` while in-flight so you can still access pending/optimistic data after unmount.
+- **Dependencies:** Bumped `multer` to v2, `minimatch`, `tar`, `pacote`, `@babel/preset-env`, and additional dev dependencies. (**#7453**, **#7480**, **#7491**, **#7504**, **#7517**, **#7531**)
 
-- When `v7_fetcherPersist` is enabled, the router now performs ref-counting on fetcher keys via `getFetcher`/`deleteFetcher` so it knows when a given fetcher is totally unmounted from the UI ([#10977](https://github.com/remix-run/react-router/pull/10977))
+## 🌟 New Contributors
 
-  - Once a fetcher has been totally unmounted, we can ignore post-processing of a persisted fetcher result such as a redirect or an error
-  - The router will also pass a new `deletedFetchers` array to the subscriber callbacks so that the UI layer can remove associated fetcher data
+We are thrilled to welcome our new contributors. Thank you for helping improve axios:
 
-- Add support for optional path segments in `matchPath` ([#10768](https://github.com/remix-run/react-router/pull/10768))
+- **@penkzhou** (**#7515**)
+- **@aviu16** (**#7456**)
+- **@fedotov** (**#7457**)
 
-### Patch Changes
+[Full Changelog](https://github.com/axios/axios/compare/v1.13.6...v1.14.0)
 
-- Fix `router.getFetcher`/`router.deleteFetcher` type definitions which incorrectly specified `key` as an optional parameter ([#10960](https://github.com/remix-run/react-router/pull/10960))
+---
 
-## 1.10.0
+## v1.13.6 - February 27, 2026
 
-### Minor Changes
+This release adds React Native Blob support, fixes several enumeration and export regressions, and patches FormData detection for WeChat Mini Program environments.
 
-- Add experimental support for the [View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/ViewTransition) by allowing users to opt-into view transitions on navigations via the new `unstable_viewTransition` option to `router.navigate` ([#10916](https://github.com/remix-run/react-router/pull/10916))
+## 🚀 New Features
 
-### Patch Changes
+- **React Native Blob Support:** Axios now correctly handles native Blob objects in React Native environments. (**#5764**)
 
-- Allow 404 detection to leverage root route error boundary if path contains a URL segment ([#10852](https://github.com/remix-run/react-router/pull/10852))
-- Fix `ErrorResponse` type to avoid leaking internal field ([#10876](https://github.com/remix-run/react-router/pull/10876))
+## 🐛 Bug Fixes
 
-## 1.9.0
+- **AxiosError:** Fixed `AxiosError.from` not copying the `status` field from the source error. (**#7403**)
 
-### Minor Changes
+- **AxiosError:** Made the `message` property enumerable so it appears in `JSON.stringify` output and `Object.keys`. (**#7392**)
 
-- In order to move towards stricter TypeScript support in the future, we're aiming to replace current usages of `any` with `unknown` on exposed typings for user-provided data. To do this in Remix v2 without introducing breaking changes in React Router v6, we have added generics to a number of shared types. These continue to default to `any` in React Router and are overridden with `unknown` in Remix. In React Router v7 we plan to move these to `unknown` as a breaking change. ([#10843](https://github.com/remix-run/react-router/pull/10843))
-  - `Location` now accepts a generic for the `location.state` value
-  - `ActionFunctionArgs`/`ActionFunction`/`LoaderFunctionArgs`/`LoaderFunction` now accept a generic for the `context` parameter (only used in SSR usages via `createStaticHandler`)
-  - The return type of `useMatches` (now exported as `UIMatch`) accepts generics for `match.data` and `match.handle` - both of which were already set to `unknown`
-- Move the `@private` class export `ErrorResponse` to an `UNSAFE_ErrorResponseImpl` export since it is an implementation detail and there should be no construction of `ErrorResponse` instances in userland. This frees us up to export a `type ErrorResponse` which correlates to an instance of the class via `InstanceType`. Userland code should only ever be using `ErrorResponse` as a type and should be type-narrowing via `isRouteErrorResponse`. ([#10811](https://github.com/remix-run/react-router/pull/10811))
-- Export `ShouldRevalidateFunctionArgs` interface ([#10797](https://github.com/remix-run/react-router/pull/10797))
-- Removed private/internal APIs only required for the Remix v1 backwards compatibility layer and no longer needed in Remix v2 (`_isFetchActionRedirect`, `_hasFetcherDoneAnything`) ([#10715](https://github.com/remix-run/react-router/pull/10715))
+- **FormData Detection:** Corrected safe FormData detection for WeChat Mini Program environments. (**#7324**)
 
-### Patch Changes
+- **React Native / Browserify Export:** Fixed broken module export that caused import failures in React Native and Browserify. (**#7386**)
 
-- Add method/url to error message on aborted `query`/`queryRoute` calls ([#10793](https://github.com/remix-run/react-router/pull/10793))
-- Fix a race-condition with loader/action-thrown errors on `route.lazy` routes ([#10778](https://github.com/remix-run/react-router/pull/10778))
-- Fix type for `actionResult` on the arguments object passed to `shouldRevalidate` ([#10779](https://github.com/remix-run/react-router/pull/10779))
+## 🔧 Maintenance & Chores
 
-## 1.8.0
+- **Dependencies:** Migrated `@rollup/plugin-babel` from v5 to v6 and bumped the development dependencies group. (**#7424**, **#7432**)
 
-### Minor Changes
+## 🌟 New Contributors
 
-- Add's a new `redirectDocument()` function which allows users to specify that a redirect from a `loader`/`action` should trigger a document reload (via `window.location`) instead of attempting to navigate to the redirected location via React Router ([#10705](https://github.com/remix-run/react-router/pull/10705))
+We are thrilled to welcome our new contributors. Thank you for helping improve axios:
 
-### Patch Changes
+- **@moh3n9595** (**#5764**)
+- **@skrtheboss** (**#7403**)
+- **@ybbus** (**#7392**)
+- **@Shiwaangee** (**#7324**)
+- **@Gudahtt** (**#7386**)
 
-- Fix an issue in `queryRoute` that was not always identifying thrown `Response` instances ([#10717](https://github.com/remix-run/react-router/pull/10717))
-- Ensure hash history always includes a leading slash on hash pathnames ([#10753](https://github.com/remix-run/react-router/pull/10753))
+[Full Changelog](https://github.com/axios/axios/compare/v1.13.5...v1.13.6)
 
-## 1.7.2
+---
 
-### Patch Changes
+## v1.13.5 - February 8, 2026
 
-- Trigger an error if a `defer` promise resolves/rejects with `undefined` in order to match the behavior of loaders and actions which must return a value or `null` ([#10690](https://github.com/remix-run/react-router/pull/10690))
-- Properly handle fetcher redirects interrupted by normal navigations ([#10674](https://github.com/remix-run/react-router/pull/10674), [#10709](https://github.com/remix-run/react-router/pull/10709))
-- Initial-load fetchers should not automatically revalidate on GET navigations ([#10688](https://github.com/remix-run/react-router/pull/10688))
-- Enhance the return type of `Route.lazy` to prohibit returning an empty object ([#10634](https://github.com/remix-run/react-router/pull/10634))
+This release patches a prototype pollution denial-of-service vulnerability, fixes a missing `status` field regression in `AxiosError`, adds interceptor ordering control, and introduces URL validation for `isAbsoluteURL`.
 
-## 1.7.1
+## 🔒 Security Fixes
 
-### Patch Changes
+- **Prototype Pollution (DoS):** Hardened `mergeConfig` to ignore `__proto__`, `constructor`, and `prototype` keys, preventing denial-of-service via prototype pollution when merging user-supplied config. (**#7369**)
 
-- Fix issues with reused blockers on subsequent navigations ([#10656](https://github.com/remix-run/react-router/pull/10656))
+## 🚀 New Features
 
-## 1.7.0
+- **`isAbsoluteURL` Validation:** Added input validation to `isAbsoluteURL` to handle malformed or unexpected input gracefully. (**#7326**)
 
-### Minor Changes
+## 🐛 Bug Fixes
 
-- Add support for `application/json` and `text/plain` encodings for `router.navigate`/`router.fetch` submissions. To leverage these encodings, pass your data in a `body` parameter and specify the desired `formEncType`: ([#10413](https://github.com/remix-run/react-router/pull/10413))
+- **AxiosError `status`:** Restored the `status` field on `AxiosError` instances, which was missing in v1.13.3 and later. (**#7368**)
 
-  ```js
-  // By default, the encoding is "application/x-www-form-urlencoded"
-  router.navigate("/", {
-    formMethod: "post",
-    body: { key: "value" },
-  });
+- **Interceptor Ordering:** Added a `useLegacyInterceptorOrder` option to restore pre-v1.13 interceptor execution order for applications relying on the previous behaviour. ([569f028](https://github.com/axios/axios/commit/569f028a5878faaec8d7d138ba686aac407bda4c))
 
-  async function action({ request }) {
-    // await request.formData() => FormData instance with entry [key=value]
-  }
-  ```
+## 🔧 Maintenance & Chores
 
-  ```js
-  // Pass `formEncType` to opt-into a different encoding (json)
-  router.navigate("/", {
-    formMethod: "post",
-    formEncType: "application/json",
-    body: { key: "value" },
-  });
+- **CI:** Fixed run conditions and updated workflow YAMLs. (**#7372**, **#7373**)
 
-  async function action({ request }) {
-    // await request.json() => { key: "value" }
-  }
-  ```
+- **Dependencies:** Bumped `karma-sourcemap-loader` and minor package versions. (**#7356**, **#7360**)
 
-  ```js
-  // Pass `formEncType` to opt-into a different encoding (text)
-  router.navigate("/", {
-    formMethod: "post",
-    formEncType: "text/plain",
-    body: "Text submission",
-  });
+## 🌟 New Contributors
 
-  async function action({ request }) {
-    // await request.text() => "Text submission"
-  }
-  ```
+We are thrilled to welcome our new contributors. Thank you for helping improve axios:
 
-### Patch Changes
+- **@asmitha-16** (**#7326**)
 
-- Call `window.history.pushState/replaceState` before updating React Router state (instead of after) so that `window.location` matches `useLocation` during synchronous React 17 rendering ([#10448](https://github.com/remix-run/react-router/pull/10448))
-  - ⚠️ However, generally apps should not be relying on `window.location` and should always reference `useLocation` when possible, as `window.location` will not be in sync 100% of the time (due to `popstate` events, concurrent mode, etc.)
-- Strip `basename` from the `location` provided to `<ScrollRestoration getKey>` to match the `useLocation` behavior ([#10550](https://github.com/remix-run/react-router/pull/10550))
-- Avoid calling `shouldRevalidate` for fetchers that have not yet completed a data load ([#10623](https://github.com/remix-run/react-router/pull/10623))
-- Fix `unstable_useBlocker` key issues in `StrictMode` ([#10573](https://github.com/remix-run/react-router/pull/10573))
-- Upgrade `typescript` to 5.1 ([#10581](https://github.com/remix-run/react-router/pull/10581))
+[Full Changelog](https://github.com/axios/axios/compare/v1.13.4...v1.13.5)
 
-## 1.6.3
+---
 
-### Patch Changes
+## v1.13.4 - January 27, 2026
 
-- Allow fetcher revalidations to complete if submitting fetcher is deleted ([#10535](https://github.com/remix-run/react-router/pull/10535))
-- Re-throw `DOMException` (`DataCloneError`) when attempting to perform a `PUSH` navigation with non-serializable state. ([#10427](https://github.com/remix-run/react-router/pull/10427))
-- Ensure revalidations happen when hash is present ([#10516](https://github.com/remix-run/react-router/pull/10516))
-- upgrade jest and jsdom ([#10453](https://github.com/remix-run/react-router/pull/10453))
+Patch release fixing regressions introduced in v1.13.3, including TypeScript export compatibility and CI/build stability.
 
-## 1.6.2
+## 🐛 Bug Fixes
 
-### Patch Changes
+- **v1.13.3 Regressions:** Fixed multiple issues introduced by the v1.13.3 release, including broken merge configs. (**#7352**)
 
-- Fix HMR-driven error boundaries by properly reconstructing new routes and `manifest` in `\_internalSetRoutes` ([#10437](https://github.com/remix-run/react-router/pull/10437))
-- Fix bug where initial data load would not kick off when hash is present ([#10493](https://github.com/remix-run/react-router/pull/10493))
+- **TypeScript Exports:** Corrected TypeScript export declarations to restore proper type resolution. (**#4884**)
 
-## 1.6.1
+## 🔧 Maintenance & Chores
 
-### Patch Changes
+- **CI & Build:** Refactored CI pipeline and build configuration for stability. (**#7340**)
 
-- Fix `basename` handling when navigating without a path ([#10433](https://github.com/remix-run/react-router/pull/10433))
-- "Same hash" navigations no longer re-run loaders to match browser behavior (i.e. `/path#hash -> /path#hash`) ([#10408](https://github.com/remix-run/react-router/pull/10408))
+[Full Changelog](https://github.com/axios/axios/compare/v1.13.3...v1.13.4)
 
-## 1.6.0
+---
 
-### Minor Changes
+## [1.13.3](https://github.com/axios/axios/compare/v1.13.2...v1.13.3) (2026-01-20)
 
-- Enable relative routing in the `@remix-run/router` when providing a source route ID from which the path is relative to: ([#10336](https://github.com/remix-run/react-router/pull/10336))
+### Bug Fixes
 
-  - Example: `router.navigate("../path", { fromRouteId: "some-route" })`.
-  - This also applies to `router.fetch` which already receives a source route ID
+- **http2:** Use port 443 for HTTPS connections by default. ([#7256](https://github.com/axios/axios/issues/7256)) ([d7e6065](https://github.com/axios/axios/commit/d7e60653460480ffacecf85383012ca1baa6263e))
+- **interceptor:** handle the error in the same interceptor ([#6269](https://github.com/axios/axios/issues/6269)) ([5945e40](https://github.com/axios/axios/commit/5945e40bb171d4ac4fc195df276cf952244f0f89))
+- main field in package.json should correspond to cjs artifacts ([#5756](https://github.com/axios/axios/issues/5756)) ([7373fbf](https://github.com/axios/axios/commit/7373fbff24cd92ce650d99ff6f7fe08c2e2a0a04))
+- **package.json:** add 'bun' package.json 'exports' condition. Load the Node.js build in Bun instead of the browser build ([#5754](https://github.com/axios/axios/issues/5754)) ([b89217e](https://github.com/axios/axios/commit/b89217e3e91de17a3d55e2b8f39ceb0e9d8aeda8))
+- silentJSONParsing=false should throw on invalid JSON ([#7253](https://github.com/axios/axios/issues/7253)) ([#7257](https://github.com/axios/axios/issues/7257)) ([7d19335](https://github.com/axios/axios/commit/7d19335e43d6754a1a9a66e424f7f7da259895bf))
+- turn AxiosError into a native error ([#5394](https://github.com/axios/axios/issues/5394)) ([#5558](https://github.com/axios/axios/issues/5558)) ([1c6a86d](https://github.com/axios/axios/commit/1c6a86dd2c0623ee1af043a8491dbc96d40e883b))
+- **types:** add handlers to AxiosInterceptorManager interface ([#5551](https://github.com/axios/axios/issues/5551)) ([8d1271b](https://github.com/axios/axios/commit/8d1271b49fc226ed7defd07cd577bd69a55bb13a))
+- **types:** restore AxiosError.cause type from unknown to Error ([#7327](https://github.com/axios/axios/issues/7327)) ([d8233d9](https://github.com/axios/axios/commit/d8233d9e8e9a64bfba9bbe01d475ba417510b82b))
+- unclear error message is thrown when specifying an empty proxy authorization ([#6314](https://github.com/axios/axios/issues/6314)) ([6ef867e](https://github.com/axios/axios/commit/6ef867e684adf7fb2343e3b29a79078a3c76dc29))
 
-- Introduce a new `@remix-run/router` `future.v7_prependBasename` flag to enable `basename` prefixing to all paths coming into `router.navigate` and `router.fetch`.
+### Features
 
-  - Previously the `basename` was prepended in the React Router layer, but now that relative routing is being handled by the router we need prepend the `basename` _after_ resolving any relative paths
-  - This also enables `basename` support in `useFetcher` as well
+- add `undefined` as a value in AxiosRequestConfig ([#5560](https://github.com/axios/axios/issues/5560)) ([095033c](https://github.com/axios/axios/commit/095033c626895ecdcda2288050b63dcf948db3bd))
+- add automatic minor and patch upgrades to dependabot ([#6053](https://github.com/axios/axios/issues/6053)) ([65a7584](https://github.com/axios/axios/commit/65a7584eda6164980ddb8cf5372f0afa2a04c1ed))
+- add Node.js coverage script using c8 (closes [#7289](https://github.com/axios/axios/issues/7289)) ([#7294](https://github.com/axios/axios/issues/7294)) ([ec9d94e](https://github.com/axios/axios/commit/ec9d94e9f88da13e9219acadf65061fb38ce080a))
+- added copilot instructions ([3f83143](https://github.com/axios/axios/commit/3f83143bfe617eec17f9d7dcf8bafafeeae74c26))
+- compatibility with frozen prototypes ([#6265](https://github.com/axios/axios/issues/6265)) ([860e033](https://github.com/axios/axios/commit/860e03396a536e9b926dacb6570732489c9d7012))
+- enhance pipeFileToResponse with error handling ([#7169](https://github.com/axios/axios/issues/7169)) ([88d7884](https://github.com/axios/axios/commit/88d78842541610692a04282233933d078a8a2552))
+- **types:** Intellisense for string literals in a widened union ([#6134](https://github.com/axios/axios/issues/6134)) ([f73474d](https://github.com/axios/axios/commit/f73474d02c5aa957b2daeecee65508557fd3c6e5)), closes [/github.com/microsoft/TypeScript/issues/33471#issuecomment-1376364329](https://github.com//github.com/microsoft/TypeScript/issues/33471/issues/issuecomment-1376364329)
 
-### Patch Changes
+### Reverts
 
-- Enhance `LoaderFunction`/`ActionFunction` return type to prevent `undefined` from being a valid return value ([#10267](https://github.com/remix-run/react-router/pull/10267))
-- Ensure proper 404 error on `fetcher.load` call to a route without a `loader` ([#10345](https://github.com/remix-run/react-router/pull/10345))
-- Deprecate the `createRouter` `detectErrorBoundary` option in favor of the new `mapRouteProperties` option for converting a framework-agnostic route to a framework-aware route. This allows us to set more than just the `hasErrorBoundary` property during route pre-processing, and is now used for mapping `Component -> element` and `ErrorBoundary -> errorElement` in `react-router`. ([#10287](https://github.com/remix-run/react-router/pull/10287))
-- Fixed a bug where fetchers were incorrectly attempting to revalidate on search params changes or routing to the same URL (using the same logic for route `loader` revalidations). However, since fetchers have a static href, they should only revalidate on `action` submissions or `router.revalidate` calls. ([#10344](https://github.com/remix-run/react-router/pull/10344))
-- Decouple `AbortController` usage between revalidating fetchers and the thing that triggered them such that the unmount/deletion of a revalidating fetcher doesn't impact the ongoing triggering navigation/revalidation ([#10271](https://github.com/remix-run/react-router/pull/10271))
+- Revert "fix: silentJSONParsing=false should throw on invalid JSON (#7253) (#7…" (#7298) ([a4230f5](https://github.com/axios/axios/commit/a4230f5581b3f58b6ff531b6dbac377a4fd7942a)), closes [#7253](https://github.com/axios/axios/issues/7253) [#7](https://github.com/axios/axios/issues/7) [#7298](https://github.com/axios/axios/issues/7298)
+- **deps:** bump peter-evans/create-pull-request from 7 to 8 in the github-actions group ([#7334](https://github.com/axios/axios/issues/7334)) ([2d6ad5e](https://github.com/axios/axios/commit/2d6ad5e48bd29b0b2b5e7e95fb473df98301543a))
 
-## 1.5.0
+### Contributors to this release
 
-### Minor Changes
+- <img src="https://avatars.githubusercontent.com/u/175160345?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Ashvin Tiwari](https://github.com/ashvin2005 '+1752/-4 (#7218 #7218 )')
+- <img src="https://avatars.githubusercontent.com/u/71729144?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Nikunj Mochi](https://github.com/mochinikunj '+940/-12 (#7294 #7294 )')
+- <img src="https://avatars.githubusercontent.com/u/128113546?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Anchal Singh](https://github.com/imanchalsingh '+544/-102 (#7169 #7185 )')
+- <img src="https://avatars.githubusercontent.com/u/4814473?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [jasonsaayman](https://github.com/jasonsaayman '+317/-73 (#7334 #7298 )')
+- <img src="https://avatars.githubusercontent.com/u/377911?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Julian Dax](https://github.com/brodo '+99/-120 (#5558 )')
+- <img src="https://avatars.githubusercontent.com/u/184285082?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Akash Dhar Dubey](https://github.com/AKASHDHARDUBEY '+167/-0 (#7287 #7288 )')
+- <img src="https://avatars.githubusercontent.com/u/145687605?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Madhumita](https://github.com/madhumitaaa '+20/-68 (#7198 )')
+- <img src="https://avatars.githubusercontent.com/u/24915252?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Tackoil](https://github.com/Tackoil '+80/-2 (#6269 )')
+- <img src="https://avatars.githubusercontent.com/u/145078271?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Justin Dhillon](https://github.com/justindhillon '+41/-41 (#6324 #6315 )')
+- <img src="https://avatars.githubusercontent.com/u/184138832?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Rudransh](https://github.com/Rudrxxx '+71/-2 (#7257 )')
+- <img src="https://avatars.githubusercontent.com/u/146366930?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [WuMingDao](https://github.com/WuMingDao '+36/-36 (#7215 )')
+- <img src="https://avatars.githubusercontent.com/u/46827243?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [codenomnom](https://github.com/codenomnom '+70/-0 (#7201 #7201 )')
+- <img src="https://avatars.githubusercontent.com/u/189698992?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Nandan Acharya](https://github.com/Nandann018-ux '+60/-10 (#7272 )')
+- <img src="https://avatars.githubusercontent.com/u/7225168?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Eric Dubé](https://github.com/KernelDeimos '+22/-40 (#7042 )')
+- <img src="https://avatars.githubusercontent.com/u/915045?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Tibor Pilz](https://github.com/tiborpilz '+40/-4 (#5551 )')
+- <img src="https://avatars.githubusercontent.com/u/23138717?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Gabriel Quaresma](https://github.com/joaoGabriel55 '+31/-4 (#6314 )')
+- <img src="https://avatars.githubusercontent.com/u/21505?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Turadg Aleahmad](https://github.com/turadg '+23/-6 (#6265 )')
+- <img src="https://avatars.githubusercontent.com/u/4273631?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [JohnTitor](https://github.com/kiritosan '+14/-14 (#6155 )')
+- <img src="https://avatars.githubusercontent.com/u/39668736?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [rohit miryala](https://github.com/rohitmiryala '+22/-0 (#7250 )')
+- <img src="https://avatars.githubusercontent.com/u/30316250?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Wilson Mun](https://github.com/wmundev '+20/-0 (#6053 )')
+- <img src="https://avatars.githubusercontent.com/u/184506226?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [techcodie](https://github.com/techcodie '+7/-7 (#7236 )')
+- <img src="https://avatars.githubusercontent.com/u/187598667?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Ved Vadnere](https://github.com/Archis009 '+5/-6 (#7283 )')
+- <img src="https://avatars.githubusercontent.com/u/115612815?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [svihpinc](https://github.com/svihpinc '+5/-3 (#6134 )')
+- <img src="https://avatars.githubusercontent.com/u/123884782?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [SANDESH LENDVE](https://github.com/mrsandy1965 '+3/-3 (#7246 )')
+- <img src="https://avatars.githubusercontent.com/u/12529395?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Lubos](https://github.com/mrlubos '+5/-1 (#7312 )')
+- <img src="https://avatars.githubusercontent.com/u/709451?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Jarred Sumner](https://github.com/Jarred-Sumner '+5/-1 (#5754 )')
+- <img src="https://avatars.githubusercontent.com/u/17907922?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Adam Hines](https://github.com/thebanjomatic '+2/-1 (#5756 )')
+- <img src="https://avatars.githubusercontent.com/u/177472603?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Subhan Kumar Rai](https://github.com/Subhan030 '+2/-1 (#7256 )')
+- <img src="https://avatars.githubusercontent.com/u/6473925?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Joseph Frazier](https://github.com/josephfrazier '+1/-1 (#7311 )')
+- <img src="https://avatars.githubusercontent.com/u/184906930?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [KT0803](https://github.com/KT0803 '+0/-2 (#7229 )')
+- <img src="https://avatars.githubusercontent.com/u/6703955?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Albie](https://github.com/AlbertoSadoc '+1/-1 (#5560 )')
+- <img src="https://avatars.githubusercontent.com/u/9452325?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Jake Hayes](https://github.com/thejayhaykid '+1/-0 (#5999 )')
 
-- Added support for [**Future Flags**](https://reactrouter.com/v6/guides/api-development-strategy) in React Router. The first flag being introduced is `future.v7_normalizeFormMethod` which will normalize the exposed `useNavigation()/useFetcher()` `formMethod` fields as uppercase HTTP methods to align with the `fetch()` behavior. ([#10207](https://github.com/remix-run/react-router/pull/10207))
+## [1.13.2](https://github.com/axios/axios/compare/v1.13.1...v1.13.2) (2025-11-04)
 
-  - When `future.v7_normalizeFormMethod === false` (default v6 behavior),
-    - `useNavigation().formMethod` is lowercase
-    - `useFetcher().formMethod` is lowercase
-  - When `future.v7_normalizeFormMethod === true`:
-    - `useNavigation().formMethod` is uppercase
-    - `useFetcher().formMethod` is uppercase
+### Bug Fixes
 
-### Patch Changes
+- **http:** fix 'socket hang up' bug for keep-alive requests when using timeouts; ([#7206](https://github.com/axios/axios/issues/7206)) ([8d37233](https://github.com/axios/axios/commit/8d372335f5c50ecd01e8615f2468a9eb19703117))
+- **http:** use default export for http2 module to support stubs; ([#7196](https://github.com/axios/axios/issues/7196)) ([0588880](https://github.com/axios/axios/commit/0588880ac7ddba7594ef179930493884b7e90bf5))
 
-- Provide fetcher submission to `shouldRevalidate` if the fetcher action redirects ([#10208](https://github.com/remix-run/react-router/pull/10208))
-- Properly handle `lazy()` errors during router initialization ([#10201](https://github.com/remix-run/react-router/pull/10201))
-- Remove `instanceof` check for `DeferredData` to be resilient to ESM/CJS boundaries in SSR bundling scenarios ([#10247](https://github.com/remix-run/react-router/pull/10247))
-- Update to latest `@remix-run/web-fetch@4.3.3` ([#10216](https://github.com/remix-run/react-router/pull/10216))
+### Performance Improvements
 
-## 1.4.0
+- **http:** fix early loop exit; ([#7202](https://github.com/axios/axios/issues/7202)) ([12c314b](https://github.com/axios/axios/commit/12c314b603e7852a157e93e47edb626a471ba6c5))
 
-### Minor Changes
+### Contributors to this release
 
-- **Introducing Lazy Route Modules!** ([#10045](https://github.com/remix-run/react-router/pull/10045))
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+28/-9 (#7206 #7202 )')
+- <img src="https://avatars.githubusercontent.com/u/1174718?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Kasper Isager Dalsgarð](https://github.com/kasperisager '+9/-9 (#7196 )')
 
-  In order to keep your application bundles small and support code-splitting of your routes, we've introduced a new `lazy()` route property. This is an async function that resolves the non-route-matching portions of your route definition (`loader`, `action`, `element`/`Component`, `errorElement`/`ErrorBoundary`, `shouldRevalidate`, `handle`).
+## [1.13.1](https://github.com/axios/axios/compare/v1.13.0...v1.13.1) (2025-10-28)
 
-  Lazy routes are resolved on initial load and during the `loading` or `submitting` phase of a navigation or fetcher call. You cannot lazily define route-matching properties (`path`, `index`, `children`) since we only execute your lazy route functions after we've matched known routes.
+### Bug Fixes
 
-  Your `lazy` functions will typically return the result of a dynamic import.
+- **http:** fixed a regression that caused the data stream to be interrupted for responses with non-OK HTTP statuses; ([#7193](https://github.com/axios/axios/issues/7193)) ([bcd5581](https://github.com/axios/axios/commit/bcd5581d208cd372055afdcb2fd10b68ca40613c))
 
-  ```jsx
-  // In this example, we assume most folks land on the homepage so we include that
-  // in our critical-path bundle, but then we lazily load modules for /a and /b so
-  // they don't load until the user navigates to those routes
-  let routes = createRoutesFromElements(
-    <Route path="/" element={<Layout />}>
-      <Route index element={<Home />} />
-      <Route path="a" lazy={() => import("./a")} />
-      <Route path="b" lazy={() => import("./b")} />
-    </Route>
-  );
-  ```
+### Contributors to this release
 
-  Then in your lazy route modules, export the properties you want defined for the route:
+- <img src="https://avatars.githubusercontent.com/u/128113546?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Anchal Singh](https://github.com/imanchalsingh '+220/-111 (#7173 )')
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+18/-1 (#7193 )')
 
-  ```jsx
-  export async function loader({ request }) {
-    let data = await fetchData(request);
-    return json(data);
-  }
+# [1.13.0](https://github.com/axios/axios/compare/v1.12.2...v1.13.0) (2025-10-27)
 
-  // Export a `Component` directly instead of needing to create a React Element from it
-  export function Component() {
-    let data = useLoaderData();
+### Bug Fixes
 
-    return (
-      <>
-        <h1>You made it!</h1>
-        <p>{data}</p>
-      </>
-    );
-  }
+- **fetch:** prevent TypeError when config.env is undefined ([#7155](https://github.com/axios/axios/issues/7155)) ([015faec](https://github.com/axios/axios/commit/015faeca9f26db76f9562760f04bb9f8229f4db1))
+- resolve issue [#7131](https://github.com/axios/axios/issues/7131) (added spacing in mergeConfig.js) ([#7133](https://github.com/axios/axios/issues/7133)) ([9b9ec98](https://github.com/axios/axios/commit/9b9ec98548d93e9f2204deea10a5f1528bf3ce62))
 
-  // Export an `ErrorBoundary` directly instead of needing to create a React Element from it
-  export function ErrorBoundary() {
-    let error = useRouteError();
-    return isRouteErrorResponse(error) ? (
-      <h1>
-        {error.status} {error.statusText}
-      </h1>
-    ) : (
-      <h1>{error.message || error}</h1>
-    );
-  }
-  ```
+### Features
 
-  An example of this in action can be found in the [`examples/lazy-loading-router-provider`](https://github.com/remix-run/react-router/tree/main/examples/lazy-loading-router-provider) directory of the repository.
+- **http:** add HTTP2 support; ([#7150](https://github.com/axios/axios/issues/7150)) ([d676df7](https://github.com/axios/axios/commit/d676df772244726533ca320f42e967f5af056bac))
 
-  🙌 Huge thanks to @rossipedia for the [Initial Proposal](https://github.com/remix-run/react-router/discussions/9826) and [POC Implementation](https://github.com/remix-run/react-router/pull/9830).
+### Contributors to this release
 
-### Patch Changes
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+794/-180 (#7186 #7150 #7039 )')
+- <img src="https://avatars.githubusercontent.com/u/189505037?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Noritaka Kobayashi](https://github.com/noritaka1166 '+24/-509 (#7032 )')
+- <img src="https://avatars.githubusercontent.com/u/195581631?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Aviraj2929](https://github.com/Aviraj2929 '+211/-93 (#7136 #7135 #7134 #7112 )')
+- <img src="https://avatars.githubusercontent.com/u/181717941?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [prasoon patel](https://github.com/Prasoon52 '+167/-6 (#7099 )')
+- <img src="https://avatars.githubusercontent.com/u/141911040?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Samyak Dandge](https://github.com/Samy-in '+134/-0 (#7171 )')
+- <img src="https://avatars.githubusercontent.com/u/128113546?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Anchal Singh](https://github.com/imanchalsingh '+53/-56 (#7170 )')
+- <img src="https://avatars.githubusercontent.com/u/146073621?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Rahul Kumar](https://github.com/jaiyankargupta '+28/-28 (#7073 )')
+- <img src="https://avatars.githubusercontent.com/u/148716794?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Amit Verma](https://github.com/Amitverma0509 '+24/-13 (#7129 )')
+- <img src="https://avatars.githubusercontent.com/u/141427581?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Abhishek3880](https://github.com/abhishekmaniy '+23/-4 (#7119 #7117 #7116 #7115 )')
+- <img src="https://avatars.githubusercontent.com/u/91522146?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dhvani Maktuporia](https://github.com/Dhvani365 '+14/-5 (#7175 )')
+- <img src="https://avatars.githubusercontent.com/u/41838423?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Usama Ayoub](https://github.com/sam3690 '+4/-4 (#7133 )')
+- <img src="https://avatars.githubusercontent.com/u/79366821?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [ikuy1203](https://github.com/ikuy1203 '+3/-3 (#7166 )')
+- <img src="https://avatars.githubusercontent.com/u/74639234?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Nikhil Simon Toppo](https://github.com/Kirito-Excalibur '+1/-1 (#7172 )')
+- <img src="https://avatars.githubusercontent.com/u/200562195?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Jane Wangari](https://github.com/Wangarijane '+1/-1 (#7155 )')
+- <img src="https://avatars.githubusercontent.com/u/78318848?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Supakorn Ieamgomol](https://github.com/Supakornn '+1/-1 (#7065 )')
+- <img src="https://avatars.githubusercontent.com/u/134518?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Kian-Meng Ang](https://github.com/kianmeng '+1/-1 (#7046 )')
+- <img src="https://avatars.githubusercontent.com/u/13148112?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [UTSUMI Keiji](https://github.com/k-utsumi '+1/-1 (#7037 )')
 
-- Fix `generatePath` incorrectly applying parameters in some cases ([#10078](https://github.com/remix-run/react-router/pull/10078))
+## [1.12.2](https://github.com/axios/axios/compare/v1.12.1...v1.12.2) (2025-09-14)
 
-## 1.3.3
+### Bug Fixes
 
-### Patch Changes
+- **fetch:** use current global fetch instead of cached one when env fetch is not specified to keep MSW support; ([#7030](https://github.com/axios/axios/issues/7030)) ([cf78825](https://github.com/axios/axios/commit/cf78825e1229b60d1629ad0bbc8a752ff43c3f53))
 
-- Correctly perform a hard redirect for same-origin absolute URLs outside of the router `basename` ([#10076](https://github.com/remix-run/react-router/pull/10076))
-- Ensure status code and headers are maintained for `defer` loader responses in `createStaticHandler`'s `query()` method ([#10077](https://github.com/remix-run/react-router/pull/10077))
-- Change `invariant` to an `UNSAFE_invariant` export since it's only intended for internal use ([#10066](https://github.com/remix-run/react-router/pull/10066))
-- Add internal API for custom HMR implementations ([#9996](https://github.com/remix-run/react-router/pull/9996))
+### Contributors to this release
 
-## 1.3.2
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+247/-16 (#7030 #7022 #7024 )')
+- <img src="https://avatars.githubusercontent.com/u/189505037?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Noritaka Kobayashi](https://github.com/noritaka1166 '+2/-6 (#7028 #7029 )')
 
-### Patch Changes
+## [1.12.1](https://github.com/axios/axios/compare/v1.12.0...v1.12.1) (2025-09-12)
 
-- Remove inaccurate console warning for POP navigations and update active blocker logic ([#10030](https://github.com/remix-run/react-router/pull/10030))
-- Only check for differing origin on absolute URL redirects ([#10033](https://github.com/remix-run/react-router/pull/10033))
+### Bug Fixes
 
-## 1.3.1
+- **types:** fixed env config types; ([#7020](https://github.com/axios/axios/issues/7020)) ([b5f26b7](https://github.com/axios/axios/commit/b5f26b75bdd9afa95016fb67d0cab15fc74cbf05))
 
-### Patch Changes
+### Contributors to this release
 
-- Fixes 2 separate issues for revalidating fetcher `shouldRevalidate` calls ([#9948](https://github.com/remix-run/react-router/pull/9948))
-  - The `shouldRevalidate` function was only being called for _explicit_ revalidation scenarios (after a mutation, manual `useRevalidator` call, or an `X-Remix-Revalidate` header used for cookie setting in Remix). It was not properly being called on _implicit_ revalidation scenarios that also apply to navigation `loader` revalidation, such as a change in search params or clicking a link for the page we're already on. It's now correctly called in those additional scenarios.
-  - The parameters being passed were incorrect and inconsistent with one another since the `current*`/`next*` parameters reflected the static `fetcher.load` URL (and thus were identical). Instead, they should have reflected the the navigation that triggered the revalidation (as the `form*` parameters did). These parameters now correctly reflect the triggering navigation.
-- Respect `preventScrollReset` on `<fetcher.Form>` ([#9963](https://github.com/remix-run/react-router/pull/9963))
-- Do not short circuit on hash change only mutation submissions ([#9944](https://github.com/remix-run/react-router/pull/9944))
-- Remove `instanceof` check from `isRouteErrorResponse` to avoid bundling issues on the server ([#9930](https://github.com/remix-run/react-router/pull/9930))
-- Fix navigation for hash routers on manual URL changes ([#9980](https://github.com/remix-run/react-router/pull/9980))
-- Detect when a `defer` call only contains critical data and remove the `AbortController` ([#9965](https://github.com/remix-run/react-router/pull/9965))
-- Send the name as the value when url-encoding `File` `FormData` entries ([#9867](https://github.com/remix-run/react-router/pull/9867))
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+10/-4 (#7020 )')
 
-## 1.3.0
+# [1.12.0](https://github.com/axios/axios/compare/v1.11.0...v1.12.0) (2025-09-11)
 
-### Minor Changes
+### Bug Fixes
 
-- Added support for navigation blocking APIs ([#9709](https://github.com/remix-run/react-router/pull/9709))
-- Expose deferred information from `createStaticHandler` ([#9760](https://github.com/remix-run/react-router/pull/9760))
+- adding build artifacts ([9ec86de](https://github.com/axios/axios/commit/9ec86de257bfa33856571036279169f385ed92bd))
+- dont add dist on release ([a2edc36](https://github.com/axios/axios/commit/a2edc3606a4f775d868a67bb3461ff18ce7ecd11))
+- **fetch-adapter:** set correct Content-Type for Node FormData ([#6998](https://github.com/axios/axios/issues/6998)) ([a9f47af](https://github.com/axios/axios/commit/a9f47afbf3224d2ca987dbd8188789c7ea853c5d))
+- **node:** enforce maxContentLength for data: URLs ([#7011](https://github.com/axios/axios/issues/7011)) ([945435f](https://github.com/axios/axios/commit/945435fc51467303768202250debb8d4ae892593))
+- package exports ([#5627](https://github.com/axios/axios/issues/5627)) ([aa78ac2](https://github.com/axios/axios/commit/aa78ac23fc9036163308c0f6bd2bb885e7af3f36))
+- **params:** removing '[' and ']' from URL encode exclude characters ([#3316](https://github.com/axios/axios/issues/3316)) ([#5715](https://github.com/axios/axios/issues/5715)) ([6d84189](https://github.com/axios/axios/commit/6d84189349c43b1dcdd977b522610660cc4c7042))
+- release pr run ([fd7f404](https://github.com/axios/axios/commit/fd7f404488b2c4f238c2fbe635b58026a634bfd2))
+- **types:** change the type guard on isCancel ([#5595](https://github.com/axios/axios/issues/5595)) ([0dbb7fd](https://github.com/axios/axios/commit/0dbb7fd4f61dc568498cd13a681fa7f907d6ec7e))
 
-### Patch Changes
+### Features
 
-- Improved absolute redirect url detection in actions/loaders ([#9829](https://github.com/remix-run/react-router/pull/9829))
-- Fix URL creation with memory histories ([#9814](https://github.com/remix-run/react-router/pull/9814))
-- Fix `generatePath` when optional params are present ([#9764](https://github.com/remix-run/react-router/pull/9764))
-- Fix scroll reset if a submission redirects ([#9886](https://github.com/remix-run/react-router/pull/9886))
-- Fix 404 bug with same-origin absolute redirects ([#9913](https://github.com/remix-run/react-router/pull/9913))
-- Support `OPTIONS` requests in `staticHandler.queryRoute` ([#9914](https://github.com/remix-run/react-router/pull/9914))
+- **adapter:** surface low‑level network error details; attach original error via cause ([#6982](https://github.com/axios/axios/issues/6982)) ([78b290c](https://github.com/axios/axios/commit/78b290c57c978ed2ab420b90d97350231c9e5d74))
+- **fetch:** add fetch, Request, Response env config variables for the adapter; ([#7003](https://github.com/axios/axios/issues/7003)) ([c959ff2](https://github.com/axios/axios/commit/c959ff29013a3bc90cde3ac7ea2d9a3f9c08974b))
+- support reviver on JSON.parse ([#5926](https://github.com/axios/axios/issues/5926)) ([2a97634](https://github.com/axios/axios/commit/2a9763426e43d996fd60d01afe63fa6e1f5b4fca)), closes [#5924](https://github.com/axios/axios/issues/5924)
+- **types:** extend AxiosResponse interface to include custom headers type ([#6782](https://github.com/axios/axios/issues/6782)) ([7960d34](https://github.com/axios/axios/commit/7960d34eded2de66ffd30b4687f8da0e46c4903e))
 
-## 1.2.1
+### Contributors to this release
 
-### Patch Changes
+- <img src="https://avatars.githubusercontent.com/u/22686401?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Willian Agostini](https://github.com/WillianAgostini '+132/-16760 (#7002 #5926 #6782 )')
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+4263/-293 (#7006 #7003 )')
+- <img src="https://avatars.githubusercontent.com/u/53833811?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [khani](https://github.com/mkhani01 '+111/-15 (#6982 )')
+- <img src="https://avatars.githubusercontent.com/u/7712804?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Ameer Assadi](https://github.com/AmeerAssadi '+123/-0 (#7011 )')
+- <img src="https://avatars.githubusercontent.com/u/70265727?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Emiedonmokumo Dick-Boro](https://github.com/emiedonmokumo '+55/-35 (#6998 )')
+- <img src="https://avatars.githubusercontent.com/u/47859767?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Zeroday BYTE](https://github.com/opsysdebug '+8/-8 (#6980 )')
+- <img src="https://avatars.githubusercontent.com/u/4814473?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Jason Saayman](https://github.com/jasonsaayman '+7/-7 (#6985 #6985 )')
+- <img src="https://avatars.githubusercontent.com/u/13010755?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [최예찬](https://github.com/HealGaren '+5/-7 (#5715 )')
+- <img src="https://avatars.githubusercontent.com/u/7002604?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Gligor Kotushevski](https://github.com/gligorkot '+3/-1 (#5627 )')
+- <img src="https://avatars.githubusercontent.com/u/15893?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Aleksandar Dimitrov](https://github.com/adimit '+2/-1 (#5595 )')
 
-- Include submission info in `shouldRevalidate` on action redirects ([#9777](https://github.com/remix-run/react-router/pull/9777), [#9782](https://github.com/remix-run/react-router/pull/9782))
-- Reset `actionData` on action redirect to current location ([#9772](https://github.com/remix-run/react-router/pull/9772))
+# [1.11.0](https://github.com/axios/axios/compare/v1.10.0...v1.11.0) (2025-07-22)
 
-## 1.2.0
+### Bug Fixes
 
-### Minor Changes
+- form-data npm package ([#6970](https://github.com/axios/axios/issues/6970)) ([e72c193](https://github.com/axios/axios/commit/e72c193722530db538b19e5ddaaa4544d226b253))
+- prevent RangeError when using large Buffers ([#6961](https://github.com/axios/axios/issues/6961)) ([a2214ca](https://github.com/axios/axios/commit/a2214ca1bc60540baf2c80573cea3a0ff91ba9d1))
+- **types:** resolve type discrepancies between ESM and CJS TypeScript declaration files ([#6956](https://github.com/axios/axios/issues/6956)) ([8517aa1](https://github.com/axios/axios/commit/8517aa16f8d082fc1d5309c642220fa736159110))
 
-- Remove `unstable_` prefix from `createStaticHandler`/`createStaticRouter`/`StaticRouterProvider` ([#9738](https://github.com/remix-run/react-router/pull/9738))
+### Contributors to this release
 
-### Patch Changes
+- <img src="https://avatars.githubusercontent.com/u/12534341?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [izzy goldman](https://github.com/izzygld '+186/-93 (#6970 )')
+- <img src="https://avatars.githubusercontent.com/u/142807367?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Manish Sahani](https://github.com/manishsahanidev '+70/-0 (#6961 )')
+- <img src="https://avatars.githubusercontent.com/u/189505037?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Noritaka Kobayashi](https://github.com/noritaka1166 '+12/-10 (#6938 #6939 )')
+- <img src="https://avatars.githubusercontent.com/u/392612?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [James Nail](https://github.com/jrnail23 '+13/-2 (#6956 )')
+- <img src="https://avatars.githubusercontent.com/u/163745239?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Tejaswi1305](https://github.com/Tejaswi1305 '+1/-1 (#6894 )')
 
-- Fix explicit `replace` on submissions and `PUSH` on submission to new paths ([#9734](https://github.com/remix-run/react-router/pull/9734))
-- Fix a few bugs where loader/action data wasn't properly cleared on errors ([#9735](https://github.com/remix-run/react-router/pull/9735))
-- Prevent `useLoaderData` usage in `errorElement` ([#9735](https://github.com/remix-run/react-router/pull/9735))
-- Skip initial scroll restoration for SSR apps with `hydrationData` ([#9664](https://github.com/remix-run/react-router/pull/9664))
+# [1.10.0](https://github.com/axios/axios/compare/v1.9.0...v1.10.0) (2025-06-14)
 
-## 1.1.0
+### Bug Fixes
 
-This release introduces support for [Optional Route Segments](https://github.com/remix-run/react-router/issues/9546). Now, adding a `?` to the end of any path segment will make that entire segment optional. This works for both static segments and dynamic parameters.
+- **adapter:** pass fetchOptions to fetch function ([#6883](https://github.com/axios/axios/issues/6883)) ([0f50af8](https://github.com/axios/axios/commit/0f50af8e076b7fb403844789bd5e812dedcaf4ed))
+- **form-data:** convert boolean values to strings in FormData serialization ([#6917](https://github.com/axios/axios/issues/6917)) ([5064b10](https://github.com/axios/axios/commit/5064b108de336ff34862650709761b8a96d26be0))
+- **package:** add module entry point for React Native; ([#6933](https://github.com/axios/axios/issues/6933)) ([3d343b8](https://github.com/axios/axios/commit/3d343b86dc4fd0eea0987059c5af04327c7ae304))
 
-**Optional Params Examples**
+### Features
 
-- Path `lang?/about` will match:
-  - `/:lang/about`
-  - `/about`
-- Path `/multistep/:widget1?/widget2?/widget3?` will match:
-  - `/multistep`
-  - `/multistep/:widget1`
-  - `/multistep/:widget1/:widget2`
-  - `/multistep/:widget1/:widget2/:widget3`
+- **types:** improved fetchOptions interface ([#6867](https://github.com/axios/axios/issues/6867)) ([63f1fce](https://github.com/axios/axios/commit/63f1fce233009f5db1abf2586c145825ac98c3d7))
 
-**Optional Static Segment Example**
+### Contributors to this release
 
-- Path `/home?` will match:
-  - `/`
-  - `/home`
-- Path `/fr?/about` will match:
-  - `/about`
-  - `/fr/about`
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+30/-19 (#6933 #6920 #6893 #6892 )')
+- <img src="https://avatars.githubusercontent.com/u/189505037?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Noritaka Kobayashi](https://github.com/noritaka1166 '+2/-6 (#6922 #6923 )')
+- <img src="https://avatars.githubusercontent.com/u/48370490?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dimitrios Lazanas](https://github.com/dimitry-lzs '+4/-0 (#6917 )')
+- <img src="https://avatars.githubusercontent.com/u/71047946?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Adrian Knapp](https://github.com/AdrianKnapp '+2/-2 (#6867 )')
+- <img src="https://avatars.githubusercontent.com/u/16129206?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Howie Zhao](https://github.com/howiezhao '+3/-1 (#6872 )')
+- <img src="https://avatars.githubusercontent.com/u/6788611?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Uhyeon Park](https://github.com/warpdev '+1/-1 (#6883 )')
+- <img src="https://avatars.githubusercontent.com/u/20028934?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Sampo Silvennoinen](https://github.com/stscoundrel '+1/-1 (#6913 )')
 
-### Minor Changes
+# [1.9.0](https://github.com/axios/axios/compare/v1.8.4...v1.9.0) (2025-04-24)
 
-- Allows optional routes and optional static segments ([#9650](https://github.com/remix-run/react-router/pull/9650))
+### Bug Fixes
 
-### Patch Changes
+- **core:** fix the Axios constructor implementation to treat the config argument as optional; ([#6881](https://github.com/axios/axios/issues/6881)) ([6c5d4cd](https://github.com/axios/axios/commit/6c5d4cd69286868059c5e52d45085cb9a894a983))
+- **fetch:** fixed ERR_NETWORK mapping for Safari browsers; ([#6767](https://github.com/axios/axios/issues/6767)) ([dfe8411](https://github.com/axios/axios/commit/dfe8411c9a082c3d068bdd1f8d6e73054f387f45))
+- **headers:** allow iterable objects to be a data source for the set method; ([#6873](https://github.com/axios/axios/issues/6873)) ([1b1f9cc](https://github.com/axios/axios/commit/1b1f9ccdc15f1ea745160ec9a5223de9db4673bc))
+- **headers:** fix `getSetCookie` by using 'get' method for caseless access; ([#6874](https://github.com/axios/axios/issues/6874)) ([d4f7df4](https://github.com/axios/axios/commit/d4f7df4b304af8b373488fdf8e830793ff843eb9))
+- **headers:** fixed support for setting multiple header values from an iterated source; ([#6885](https://github.com/axios/axios/issues/6885)) ([f7a3b5e](https://github.com/axios/axios/commit/f7a3b5e0f7e5e127b97defa92a132fbf1b55cf15))
+- **http:** send minimal end multipart boundary ([#6661](https://github.com/axios/axios/issues/6661)) ([987d2e2](https://github.com/axios/axios/commit/987d2e2dd3b362757550f36eab875e60640b6ddc))
+- **types:** fix autocomplete for adapter config ([#6855](https://github.com/axios/axios/issues/6855)) ([e61a893](https://github.com/axios/axios/commit/e61a8934d8f94dd429a2f309b48c67307c700df0))
 
-- Stop incorrectly matching on partial named parameters, i.e. `<Route path="prefix-:param">`, to align with how splat parameters work. If you were previously relying on this behavior then it's recommended to extract the static portion of the path at the `useParams` call site: ([#9506](https://github.com/remix-run/react-router/pull/9506))
+### Features
 
-```jsx
-// Old behavior at URL /prefix-123
-<Route path="prefix-:id" element={<Comp /> }>
+- **AxiosHeaders:** add getSetCookie method to retrieve set-cookie headers values ([#5707](https://github.com/axios/axios/issues/5707)) ([80ea756](https://github.com/axios/axios/commit/80ea756e72bcf53110fa792f5d7ab76e8b11c996))
 
-function Comp() {
-  let params = useParams(); // { id: '123' }
-  let id = params.id; // "123"
-  ...
-}
+### Contributors to this release
 
-// New behavior at URL /prefix-123
-<Route path=":id" element={<Comp /> }>
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+200/-34 (#6890 #6889 #6888 #6885 #6881 #6767 #6874 #6873 )')
+- <img src="https://avatars.githubusercontent.com/u/4814473?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Jay](https://github.com/jasonsaayman '+26/-1 ()')
+- <img src="https://avatars.githubusercontent.com/u/22686401?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Willian Agostini](https://github.com/WillianAgostini '+21/-0 (#5707 )')
+- <img src="https://avatars.githubusercontent.com/u/2500247?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [George Cheng](https://github.com/Gerhut '+3/-3 (#5096 )')
+- <img src="https://avatars.githubusercontent.com/u/30260221?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [FatahChan](https://github.com/FatahChan '+2/-2 (#6855 )')
+- <img src="https://avatars.githubusercontent.com/u/49002?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Ionuț G. Stan](https://github.com/igstan '+1/-1 (#6661 )')
 
-function Comp() {
-  let params = useParams(); // { id: 'prefix-123' }
-  let id = params.id.replace(/^prefix-/, ''); // "123"
-  ...
-}
+## [1.8.4](https://github.com/axios/axios/compare/v1.8.3...v1.8.4) (2025-03-19)
+
+### Bug Fixes
+
+- **buildFullPath:** handle `allowAbsoluteUrls: false` without `baseURL` ([#6833](https://github.com/axios/axios/issues/6833)) ([f10c2e0](https://github.com/axios/axios/commit/f10c2e0de7fde0051f848609a29c2906d0caa1d9))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/8029107?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Marc Hassan](https://github.com/mhassan1 '+5/-1 (#6833 )')
+
+## [1.8.3](https://github.com/axios/axios/compare/v1.8.2...v1.8.3) (2025-03-10)
+
+### Bug Fixes
+
+- add missing type for allowAbsoluteUrls ([#6818](https://github.com/axios/axios/issues/6818)) ([10fa70e](https://github.com/axios/axios/commit/10fa70ef14fe39558b15a179f0e82f5f5e5d11b2))
+- **xhr/fetch:** pass `allowAbsoluteUrls` to `buildFullPath` in `xhr` and `fetch` adapters ([#6814](https://github.com/axios/axios/issues/6814)) ([ec159e5](https://github.com/axios/axios/commit/ec159e507bdf08c04ba1a10fe7710094e9e50ec9))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/3238291?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Ashcon Partovi](https://github.com/Electroid '+6/-0 (#6811 )')
+- <img src="https://avatars.githubusercontent.com/u/28559054?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [StefanBRas](https://github.com/StefanBRas '+4/-0 (#6818 )')
+- <img src="https://avatars.githubusercontent.com/u/8029107?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Marc Hassan](https://github.com/mhassan1 '+2/-2 (#6814 )')
+
+## [1.8.2](https://github.com/axios/axios/compare/v1.8.1...v1.8.2) (2025-03-07)
+
+### Bug Fixes
+
+- **http-adapter:** add allowAbsoluteUrls to path building ([#6810](https://github.com/axios/axios/issues/6810)) ([fb8eec2](https://github.com/axios/axios/commit/fb8eec214ce7744b5ca787f2c3b8339b2f54b00f))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/14166260?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Fasoro-Joseph Alexander](https://github.com/lexcorp16 '+1/-1 (#6810 )')
+
+## [1.8.1](https://github.com/axios/axios/compare/v1.8.0...v1.8.1) (2025-02-26)
+
+### Bug Fixes
+
+- **utils:** move `generateString` to platform utils to avoid importing crypto module into client builds; ([#6789](https://github.com/axios/axios/issues/6789)) ([36a5a62](https://github.com/axios/axios/commit/36a5a620bec0b181451927f13ac85b9888b86cec))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+51/-47 (#6789 )')
+
+# [1.8.0](https://github.com/axios/axios/compare/v1.7.9...v1.8.0) (2025-02-25)
+
+### Bug Fixes
+
+- **examples:** application crashed when navigating examples in browser ([#5938](https://github.com/axios/axios/issues/5938)) ([1260ded](https://github.com/axios/axios/commit/1260ded634ec101dd5ed05d3b70f8e8f899dba6c))
+- missing word in SUPPORT_QUESTION.yml ([#6757](https://github.com/axios/axios/issues/6757)) ([1f890b1](https://github.com/axios/axios/commit/1f890b13f2c25a016f3c84ae78efb769f244133e))
+- **utils:** replace getRandomValues with crypto module ([#6788](https://github.com/axios/axios/issues/6788)) ([23a25af](https://github.com/axios/axios/commit/23a25af0688d1db2c396deb09229d2271cc24f6c))
+
+### Features
+
+- Add config for ignoring absolute URLs ([#5902](https://github.com/axios/axios/issues/5902)) ([#6192](https://github.com/axios/axios/issues/6192)) ([32c7bcc](https://github.com/axios/axios/commit/32c7bcc0f233285ba27dec73a4b1e81fb7a219b3))
+
+### Reverts
+
+- Revert "chore: expose fromDataToStream to be consumable (#6731)" (#6732) ([1317261](https://github.com/axios/axios/commit/1317261125e9c419fe9f126867f64d28f9c1efda)), closes [#6731](https://github.com/axios/axios/issues/6731) [#6732](https://github.com/axios/axios/issues/6732)
+
+### BREAKING CHANGES
+
+- code relying on the above will now combine the URLs instead of prefer request URL
+
+- feat: add config option for allowing absolute URLs
+
+- fix: add default value for allowAbsoluteUrls in buildFullPath
+
+- fix: typo in flow control when setting allowAbsoluteUrls
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/7661715?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Michael Toscano](https://github.com/GethosTheWalrus '+42/-8 (#6192 )')
+- <img src="https://avatars.githubusercontent.com/u/22686401?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Willian Agostini](https://github.com/WillianAgostini '+26/-3 (#6788 #6777 )')
+- <img src="https://avatars.githubusercontent.com/u/72578270?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Naron](https://github.com/naronchen '+27/-0 (#5901 )')
+- <img src="https://avatars.githubusercontent.com/u/47430686?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [shravan || श्रvan](https://github.com/shravan20 '+7/-3 (#6116 )')
+- <img src="https://avatars.githubusercontent.com/u/145078271?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Justin Dhillon](https://github.com/justindhillon '+0/-7 (#6312 )')
+- <img src="https://avatars.githubusercontent.com/u/30925732?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [yionr](https://github.com/yionr '+5/-1 (#6129 )')
+- <img src="https://avatars.githubusercontent.com/u/534166?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Shin&#x27;ya Ueoka](https://github.com/ueokande '+3/-3 (#5935 )')
+- <img src="https://avatars.githubusercontent.com/u/33569?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dan Dascalescu](https://github.com/dandv '+3/-3 (#5908 #6757 )')
+- <img src="https://avatars.githubusercontent.com/u/16476523?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Nitin Ramnani](https://github.com/NitinRamnani '+2/-2 (#5938 )')
+- <img src="https://avatars.githubusercontent.com/u/152275799?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Shay Molcho](https://github.com/shaymolcho '+2/-2 (#6770 )')
+- <img src="https://avatars.githubusercontent.com/u/4814473?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Jay](https://github.com/jasonsaayman '+0/-3 (#6732 )')
+- fancy45daddy
+- <img src="https://avatars.githubusercontent.com/u/127725897?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Habip Akyol](https://github.com/habipakyol '+1/-1 (#6030 )')
+- <img src="https://avatars.githubusercontent.com/u/54869395?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Bailey Lissington](https://github.com/llamington '+1/-1 (#6771 )')
+- <img src="https://avatars.githubusercontent.com/u/14969290?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Bernardo da Eira Duarte](https://github.com/bernardoduarte '+1/-1 (#6480 )')
+- <img src="https://avatars.githubusercontent.com/u/117800149?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Shivam Batham](https://github.com/Shivam-Batham '+1/-1 (#5949 )')
+- <img src="https://avatars.githubusercontent.com/u/67861627?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Lipin Kariappa](https://github.com/lipinnnnn '+1/-1 (#5936 )')
+
+## [1.7.9](https://github.com/axios/axios/compare/v1.7.8...v1.7.9) (2024-12-04)
+
+### Reverts
+
+- Revert "fix(types): export CJS types from ESM (#6218)" (#6729) ([c44d2f2](https://github.com/axios/axios/commit/c44d2f2316ad289b38997657248ba10de11deb6c)), closes [#6218](https://github.com/axios/axios/issues/6218) [#6729](https://github.com/axios/axios/issues/6729)
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/4814473?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Jay](https://github.com/jasonsaayman '+596/-108 (#6729 )')
+
+## [1.7.8](https://github.com/axios/axios/compare/v1.7.7...v1.7.8) (2024-11-25)
+
+### Bug Fixes
+
+- allow passing a callback as paramsSerializer to buildURL ([#6680](https://github.com/axios/axios/issues/6680)) ([eac4619](https://github.com/axios/axios/commit/eac4619fe2e0926e876cd260ee21e3690381dbb5))
+- **core:** fixed config merging bug ([#6668](https://github.com/axios/axios/issues/6668)) ([5d99fe4](https://github.com/axios/axios/commit/5d99fe4491202a6268c71e5dcc09192359d73cea))
+- fixed width form to not shrink after 'Send Request' button is clicked ([#6644](https://github.com/axios/axios/issues/6644)) ([7ccd5fd](https://github.com/axios/axios/commit/7ccd5fd42402102d38712c32707bf055be72ab54))
+- **http:** add support for File objects as payload in http adapter ([#6588](https://github.com/axios/axios/issues/6588)) ([#6605](https://github.com/axios/axios/issues/6605)) ([6841d8d](https://github.com/axios/axios/commit/6841d8d18ddc71cc1bd202ffcfddb3f95622eef3))
+- **http:** fixed proxy-from-env module import ([#5222](https://github.com/axios/axios/issues/5222)) ([12b3295](https://github.com/axios/axios/commit/12b32957f1258aee94ef859809ed39f8f88f9dfa))
+- **http:** use `globalThis.TextEncoder` when available ([#6634](https://github.com/axios/axios/issues/6634)) ([df956d1](https://github.com/axios/axios/commit/df956d18febc9100a563298dfdf0f102c3d15410))
+- ios11 breaks when build ([#6608](https://github.com/axios/axios/issues/6608)) ([7638952](https://github.com/axios/axios/commit/763895270f7b50c7c780c3c9807ae8635de952cd))
+- **types:** add missing types for mergeConfig function ([#6590](https://github.com/axios/axios/issues/6590)) ([00de614](https://github.com/axios/axios/commit/00de614cd07b7149af335e202aef0e076c254f49))
+- **types:** export CJS types from ESM ([#6218](https://github.com/axios/axios/issues/6218)) ([c71811b](https://github.com/axios/axios/commit/c71811b00f2fcff558e4382ba913bdac4ad7200e))
+- updated stream aborted error message to be more clear ([#6615](https://github.com/axios/axios/issues/6615)) ([cc3217a](https://github.com/axios/axios/commit/cc3217a612024d83a663722a56d7a98d8759c6d5))
+- use URL API instead of DOM to fix a potential vulnerability warning; ([#6714](https://github.com/axios/axios/issues/6714)) ([0a8d6e1](https://github.com/axios/axios/commit/0a8d6e19da5b9899a2abafaaa06a75ee548597db))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/779047?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Remco Haszing](https://github.com/remcohaszing '+108/-596 (#6218 )')
+- <img src="https://avatars.githubusercontent.com/u/4814473?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Jay](https://github.com/jasonsaayman '+281/-19 (#6640 #6619 )')
+- <img src="https://avatars.githubusercontent.com/u/140250471?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Aayush Yadav](https://github.com/aayushyadav020 '+124/-111 (#6617 )')
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+12/-65 (#6714 )')
+- <img src="https://avatars.githubusercontent.com/u/479715?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Ell Bradshaw](https://github.com/cincodenada '+29/-0 (#6489 )')
+- <img src="https://avatars.githubusercontent.com/u/60218780?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Amit Saini](https://github.com/amitsainii '+13/-3 (#5237 )')
+- <img src="https://avatars.githubusercontent.com/u/19817867?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Tommaso Paulon](https://github.com/guuido '+14/-1 (#6680 )')
+- <img src="https://avatars.githubusercontent.com/u/63336443?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Akki](https://github.com/Aakash-Rana '+5/-5 (#6668 )')
+- <img src="https://avatars.githubusercontent.com/u/20028934?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Sampo Silvennoinen](https://github.com/stscoundrel '+3/-3 (#6633 )')
+- <img src="https://avatars.githubusercontent.com/u/1174718?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Kasper Isager Dalsgarð](https://github.com/kasperisager '+2/-2 (#6634 )')
+- <img src="https://avatars.githubusercontent.com/u/3709715?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Christian Clauss](https://github.com/cclauss '+4/-0 (#6683 )')
+- <img src="https://avatars.githubusercontent.com/u/1639119?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Pavan Welihinda](https://github.com/pavan168 '+2/-2 (#5222 )')
+- <img src="https://avatars.githubusercontent.com/u/5742900?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Taylor Flatt](https://github.com/taylorflatt '+2/-2 (#6615 )')
+- <img src="https://avatars.githubusercontent.com/u/79452224?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Kenzo Wada](https://github.com/Kenzo-Wada '+2/-2 (#6608 )')
+- <img src="https://avatars.githubusercontent.com/u/50064240?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Ngole Lawson](https://github.com/echelonnought '+3/-0 (#6644 )')
+- <img src="https://avatars.githubusercontent.com/u/1262198?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Haven](https://github.com/Baoyx007 '+3/-0 (#6590 )')
+- <img src="https://avatars.githubusercontent.com/u/149003676?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Shrivali Dutt](https://github.com/shrivalidutt '+1/-1 (#6637 )')
+- <img src="https://avatars.githubusercontent.com/u/1304290?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Henco Appel](https://github.com/hencoappel '+1/-1 (#6605 )')
+
+## [1.7.7](https://github.com/axios/axios/compare/v1.7.6...v1.7.7) (2024-08-31)
+
+### Bug Fixes
+
+- **fetch:** fix stream handling in Safari by fallback to using a stream reader instead of an async iterator; ([#6584](https://github.com/axios/axios/issues/6584)) ([d198085](https://github.com/axios/axios/commit/d1980854fee1765cd02fa0787adf5d6e34dd9dcf))
+- **http:** fixed support for IPv6 literal strings in url ([#5731](https://github.com/axios/axios/issues/5731)) ([364993f](https://github.com/axios/axios/commit/364993f0d8bc6e0e06f76b8a35d2d0a35cab054c))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/10539109?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Rishi556](https://github.com/Rishi556 '+39/-1 (#5731 )')
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+27/-7 (#6584 )')
+
+## [1.7.6](https://github.com/axios/axios/compare/v1.7.5...v1.7.6) (2024-08-30)
+
+### Bug Fixes
+
+- **fetch:** fix content length calculation for FormData payload; ([#6524](https://github.com/axios/axios/issues/6524)) ([085f568](https://github.com/axios/axios/commit/085f56861a83e9ac02c140ad9d68dac540dfeeaa))
+- **fetch:** optimize signals composing logic; ([#6582](https://github.com/axios/axios/issues/6582)) ([df9889b](https://github.com/axios/axios/commit/df9889b83c2cc37e9e6189675a73ab70c60f031f))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+98/-46 (#6582 )')
+- <img src="https://avatars.githubusercontent.com/u/3534453?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Jacques Germishuys](https://github.com/jacquesg '+5/-1 (#6524 )')
+- <img src="https://avatars.githubusercontent.com/u/53894505?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [kuroino721](https://github.com/kuroino721 '+3/-1 (#6575 )')
+
+## [1.7.5](https://github.com/axios/axios/compare/v1.7.4...v1.7.5) (2024-08-23)
+
+### Bug Fixes
+
+- **adapter:** fix undefined reference to hasBrowserEnv ([#6572](https://github.com/axios/axios/issues/6572)) ([7004707](https://github.com/axios/axios/commit/7004707c4180b416341863bd86913fe4fc2f1df1))
+- **core:** add the missed implementation of AxiosError#status property; ([#6573](https://github.com/axios/axios/issues/6573)) ([6700a8a](https://github.com/axios/axios/commit/6700a8adac06942205f6a7a21421ecb36c4e0852))
+- **core:** fix `ReferenceError: navigator is not defined` for custom environments; ([#6567](https://github.com/axios/axios/issues/6567)) ([fed1a4b](https://github.com/axios/axios/commit/fed1a4b2d78ed4a588c84e09d32749ed01dc2794))
+- **fetch:** fix credentials handling in Cloudflare workers ([#6533](https://github.com/axios/axios/issues/6533)) ([550d885](https://github.com/axios/axios/commit/550d885eb90fd156add7b93bbdc54d30d2f9a98d))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+187/-83 (#6573 #6567 #6566 #6564 #6563 #6557 #6556 #6555 #6554 #6552 )')
+- <img src="https://avatars.githubusercontent.com/u/2495809?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Antonin Bas](https://github.com/antoninbas '+6/-6 (#6572 )')
+- <img src="https://avatars.githubusercontent.com/u/5406212?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Hans Otto Wirtz](https://github.com/hansottowirtz '+4/-1 (#6533 )')
+
+## [1.7.4](https://github.com/axios/axios/compare/v1.7.3...v1.7.4) (2024-08-13)
+
+### Bug Fixes
+
+- **sec:** CVE-2024-39338 ([#6539](https://github.com/axios/axios/issues/6539)) ([#6543](https://github.com/axios/axios/issues/6543)) ([6b6b605](https://github.com/axios/axios/commit/6b6b605eaf73852fb2dae033f1e786155959de3a))
+- **sec:** disregard protocol-relative URL to remediate SSRF ([#6539](https://github.com/axios/axios/issues/6539)) ([07a661a](https://github.com/axios/axios/commit/07a661a2a6b9092c4aa640dcc7f724ec5e65bdda))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/31389480?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Lev Pachmanov](https://github.com/levpachmanov '+47/-11 (#6543 )')
+- <img src="https://avatars.githubusercontent.com/u/41283691?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Đỗ Trọng Hải](https://github.com/hainenber '+49/-4 (#6539 )')
+
+## [1.7.3](https://github.com/axios/axios/compare/v1.7.2...v1.7.3) (2024-08-01)
+
+### Bug Fixes
+
+- **adapter:** fix progress event emitting; ([#6518](https://github.com/axios/axios/issues/6518)) ([e3c76fc](https://github.com/axios/axios/commit/e3c76fc9bdd03aa4d98afaf211df943e2031453f))
+- **fetch:** fix withCredentials request config ([#6505](https://github.com/axios/axios/issues/6505)) ([85d4d0e](https://github.com/axios/axios/commit/85d4d0ea0aae91082f04e303dec46510d1b4e787))
+- **xhr:** return original config on errors from XHR adapter ([#6515](https://github.com/axios/axios/issues/6515)) ([8966ee7](https://github.com/axios/axios/commit/8966ee7ea62ecbd6cfb39a905939bcdab5cf6388))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+211/-159 (#6518 #6519 )')
+- <img src="https://avatars.githubusercontent.com/u/10867286?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Valerii Sidorenko](https://github.com/ValeraS '+3/-3 (#6515 )')
+- <img src="https://avatars.githubusercontent.com/u/8599535?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [prianYu](https://github.com/prianyu '+2/-2 (#6505 )')
+
+## [1.7.2](https://github.com/axios/axios/compare/v1.7.1...v1.7.2) (2024-05-21)
+
+### Bug Fixes
+
+- **fetch:** enhance fetch API detection; ([#6413](https://github.com/axios/axios/issues/6413)) ([4f79aef](https://github.com/axios/axios/commit/4f79aef81b7c4644328365bfc33acf0a9ef595bc))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+3/-3 (#6413 )')
+
+## [1.7.1](https://github.com/axios/axios/compare/v1.7.0...v1.7.1) (2024-05-20)
+
+### Bug Fixes
+
+- **fetch:** fixed ReferenceError issue when TextEncoder is not available in the environment; ([#6410](https://github.com/axios/axios/issues/6410)) ([733f15f](https://github.com/axios/axios/commit/733f15fe5bd2d67e1fadaee82e7913b70d45dc5e))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+14/-9 (#6410 )')
+
+# [1.7.0](https://github.com/axios/axios/compare/v1.7.0-beta.2...v1.7.0) (2024-05-19)
+
+### Features
+
+- **adapter:** add fetch adapter; ([#6371](https://github.com/axios/axios/issues/6371)) ([a3ff99b](https://github.com/axios/axios/commit/a3ff99b59d8ec2ab5dd049e68c043617a4072e42))
+
+### Bug Fixes
+
+- **core/axios:** handle un-writable error stack ([#6362](https://github.com/axios/axios/issues/6362)) ([81e0455](https://github.com/axios/axios/commit/81e0455b7b57fbaf2be16a73ebe0e6591cc6d8f9))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+1015/-127 (#6371 )')
+- <img src="https://avatars.githubusercontent.com/u/4814473?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Jay](https://github.com/jasonsaayman '+30/-14 ()')
+- <img src="https://avatars.githubusercontent.com/u/16711696?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Alexandre ABRIOUX](https://github.com/alexandre-abrioux '+56/-6 (#6362 )')
+
+# [1.7.0-beta.2](https://github.com/axios/axios/compare/v1.7.0-beta.1...v1.7.0-beta.2) (2024-05-19)
+
+### Bug Fixes
+
+- **fetch:** capitalize HTTP method names; ([#6395](https://github.com/axios/axios/issues/6395)) ([ad3174a](https://github.com/axios/axios/commit/ad3174a3515c3c2573f4bcb94818d582826f3914))
+- **fetch:** fix & optimize progress capturing for cases when the request data has a nullish value or zero data length ([#6400](https://github.com/axios/axios/issues/6400)) ([95a3e8e](https://github.com/axios/axios/commit/95a3e8e346cfd6a5548e171f2341df3235d0e26b))
+- **fetch:** fix headers getting from a stream response; ([#6401](https://github.com/axios/axios/issues/6401)) ([870e0a7](https://github.com/axios/axios/commit/870e0a76f60d0094774a6a63fa606eec52a381af))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+99/-46 (#6405 #6404 #6401 #6400 #6395 )')
+
+# [1.7.0-beta.1](https://github.com/axios/axios/compare/v1.7.0-beta.0...v1.7.0-beta.1) (2024-05-07)
+
+### Bug Fixes
+
+- **core/axios:** handle un-writable error stack ([#6362](https://github.com/axios/axios/issues/6362)) ([81e0455](https://github.com/axios/axios/commit/81e0455b7b57fbaf2be16a73ebe0e6591cc6d8f9))
+- **fetch:** fix cases when ReadableStream or Response.body are not available; ([#6377](https://github.com/axios/axios/issues/6377)) ([d1d359d](https://github.com/axios/axios/commit/d1d359da347704e8b28d768e61515a3e96c5b072))
+- **fetch:** treat fetch-related TypeError as an AxiosError.ERR_NETWORK error; ([#6380](https://github.com/axios/axios/issues/6380)) ([bb5f9a5](https://github.com/axios/axios/commit/bb5f9a5ab768452de9e166dc28d0ffc234245ef1))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/16711696?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Alexandre ABRIOUX](https://github.com/alexandre-abrioux '+56/-6 (#6362 )')
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+42/-17 (#6380 #6377 )')
+
+# [1.7.0-beta.0](https://github.com/axios/axios/compare/v1.6.8...v1.7.0-beta.0) (2024-04-28)
+
+### Features
+
+- **adapter:** add fetch adapter; ([#6371](https://github.com/axios/axios/issues/6371)) ([a3ff99b](https://github.com/axios/axios/commit/a3ff99b59d8ec2ab5dd049e68c043617a4072e42))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+1015/-127 (#6371 )')
+- <img src="https://avatars.githubusercontent.com/u/4814473?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Jay](https://github.com/jasonsaayman '+30/-14 ()')
+
+## [1.6.8](https://github.com/axios/axios/compare/v1.6.7...v1.6.8) (2024-03-15)
+
+### Bug Fixes
+
+- **AxiosHeaders:** fix AxiosHeaders conversion to an object during config merging ([#6243](https://github.com/axios/axios/issues/6243)) ([2656612](https://github.com/axios/axios/commit/2656612bc10fe2757e9832b708ed773ab340b5cb))
+- **import:** use named export for EventEmitter; ([7320430](https://github.com/axios/axios/commit/7320430aef2e1ba2b89488a0eaf42681165498b1))
+- **vulnerability:** update follow-redirects to 1.15.6 ([#6300](https://github.com/axios/axios/issues/6300)) ([8786e0f](https://github.com/axios/axios/commit/8786e0ff55a8c68d4ca989801ad26df924042e27))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/4814473?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Jay](https://github.com/jasonsaayman '+4572/-3446 (#6238 )')
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+30/-0 (#6231 )')
+- <img src="https://avatars.githubusercontent.com/u/68230846?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Mitchell](https://github.com/Creaous '+9/-9 (#6300 )')
+- <img src="https://avatars.githubusercontent.com/u/53797821?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Emmanuel](https://github.com/mannoeu '+2/-2 (#6196 )')
+- <img src="https://avatars.githubusercontent.com/u/44109284?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Lucas Keller](https://github.com/ljkeller '+3/-0 (#6194 )')
+- <img src="https://avatars.githubusercontent.com/u/72791488?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Aditya Mogili](https://github.com/ADITYA-176 '+1/-1 ()')
+- <img src="https://avatars.githubusercontent.com/u/46135319?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Miroslav Petrov](https://github.com/petrovmiroslav '+1/-1 (#6243 )')
+
+## [1.6.7](https://github.com/axios/axios/compare/v1.6.6...v1.6.7) (2024-01-25)
+
+### Bug Fixes
+
+- capture async stack only for rejections with native error objects; ([#6203](https://github.com/axios/axios/issues/6203)) ([1a08f90](https://github.com/axios/axios/commit/1a08f90f402336e4d00e9ee82f211c6adb1640b0))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+30/-26 (#6203 )')
+- <img src="https://avatars.githubusercontent.com/u/73059627?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [zhoulixiang](https://github.com/zh-lx '+0/-3 (#6186 )')
+
+## [1.6.6](https://github.com/axios/axios/compare/v1.6.5...v1.6.6) (2024-01-24)
+
+### Bug Fixes
+
+- fixed missed dispatchBeforeRedirect argument ([#5778](https://github.com/axios/axios/issues/5778)) ([a1938ff](https://github.com/axios/axios/commit/a1938ff073fcb0f89011f001dfbc1fa1dc995e39))
+- wrap errors to improve async stack trace ([#5987](https://github.com/axios/axios/issues/5987)) ([123f354](https://github.com/axios/axios/commit/123f354b920f154a209ea99f76b7b2ef3d9ebbab))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/1186084?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Ilya Priven](https://github.com/ikonst '+91/-8 (#5987 )')
+- <img src="https://avatars.githubusercontent.com/u/1884246?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Zao Soula](https://github.com/zaosoula '+6/-6 (#5778 )')
+
+## [1.6.5](https://github.com/axios/axios/compare/v1.6.4...v1.6.5) (2024-01-05)
+
+### Bug Fixes
+
+- **ci:** refactor notify action as a job of publish action; ([#6176](https://github.com/axios/axios/issues/6176)) ([0736f95](https://github.com/axios/axios/commit/0736f95ce8776366dc9ca569f49ba505feb6373c))
+- **dns:** fixed lookup error handling; ([#6175](https://github.com/axios/axios/issues/6175)) ([f4f2b03](https://github.com/axios/axios/commit/f4f2b039dd38eb4829e8583caede4ed6d2dd59be))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+41/-6 (#6176 #6175 )')
+- <img src="https://avatars.githubusercontent.com/u/4814473?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Jay](https://github.com/jasonsaayman '+6/-1 ()')
+
+## [1.6.4](https://github.com/axios/axios/compare/v1.6.3...v1.6.4) (2024-01-03)
+
+### Bug Fixes
+
+- **security:** fixed formToJSON prototype pollution vulnerability; ([#6167](https://github.com/axios/axios/issues/6167)) ([3c0c11c](https://github.com/axios/axios/commit/3c0c11cade045c4412c242b5727308cff9897a0e))
+- **security:** fixed security vulnerability in follow-redirects ([#6163](https://github.com/axios/axios/issues/6163)) ([75af1cd](https://github.com/axios/axios/commit/75af1cdff5b3a6ca3766d3d3afbc3115bb0811b8))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/4814473?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Jay](https://github.com/jasonsaayman '+34/-6 ()')
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+34/-3 (#6172 #6167 )')
+- <img src="https://avatars.githubusercontent.com/u/1402060?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Guy Nesher](https://github.com/gnesher '+10/-10 (#6163 )')
+
+## [1.6.3](https://github.com/axios/axios/compare/v1.6.2...v1.6.3) (2023-12-26)
+
+### Bug Fixes
+
+- Regular Expression Denial of Service (ReDoS) ([#6132](https://github.com/axios/axios/issues/6132)) ([5e7ad38](https://github.com/axios/axios/commit/5e7ad38fb0f819fceb19fb2ee5d5d38f56aa837d))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/4814473?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Jay](https://github.com/jasonsaayman '+15/-6 (#6145 )')
+- <img src="https://avatars.githubusercontent.com/u/22686401?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Willian Agostini](https://github.com/WillianAgostini '+17/-2 (#6132 )')
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+3/-0 (#6084 )')
+
+## [1.6.2](https://github.com/axios/axios/compare/v1.6.1...v1.6.2) (2023-11-14)
+
+### Features
+
+- **withXSRFToken:** added withXSRFToken option as a workaround to achieve the old `withCredentials` behavior; ([#6046](https://github.com/axios/axios/issues/6046)) ([cff9967](https://github.com/axios/axios/commit/cff996779b272a5e94c2b52f5503ccf668bc42dc))
+
+### PRs
+
+- feat(withXSRFToken): added withXSRFToken option as a workaround to achieve the old &#x60;withCredentials&#x60; behavior; ( [#6046](https://api.github.com/repos/axios/axios/pulls/6046) )
+
 ```
 
-- Persist `headers` on `loader` `request`'s after SSR document `action` request ([#9721](https://github.com/remix-run/react-router/pull/9721))
-- Fix requests sent to revalidating loaders so they reflect a GET request ([#9660](https://github.com/remix-run/react-router/pull/9660))
-- Fix issue with deeply nested optional segments ([#9727](https://github.com/remix-run/react-router/pull/9727))
-- GET forms now expose a submission on the loading navigation ([#9695](https://github.com/remix-run/react-router/pull/9695))
-- Fix error boundary tracking for multiple errors bubbling to the same boundary ([#9702](https://github.com/remix-run/react-router/pull/9702))
+📢 This PR added &#x27;withXSRFToken&#x27; option as a replacement for old withCredentials behaviour.
+You should now use withXSRFToken along with withCredential to get the old behavior.
+This functionality is considered as a fix.
+```
 
-## 1.0.5
+### Contributors to this release
 
-### Patch Changes
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+271/-146 (#6081 #6080 #6079 #6078 #6046 #6064 #6063 )')
+- <img src="https://avatars.githubusercontent.com/u/79681367?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Ng Choon Khon (CK)](https://github.com/ckng0221 '+4/-4 (#6073 )')
+- <img src="https://avatars.githubusercontent.com/u/9162827?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Muhammad Noman](https://github.com/mnomanmemon '+2/-2 (#6048 )')
 
-- Fix requests sent to revalidating loaders so they reflect a `GET` request ([#9680](https://github.com/remix-run/react-router/pull/9680))
-- Remove `instanceof Response` checks in favor of `isResponse` ([#9690](https://github.com/remix-run/react-router/pull/9690))
-- Fix `URL` creation in Cloudflare Pages or other non-browser-environments ([#9682](https://github.com/remix-run/react-router/pull/9682), [#9689](https://github.com/remix-run/react-router/pull/9689))
-- Add `requestContext` support to static handler `query`/`queryRoute` ([#9696](https://github.com/remix-run/react-router/pull/9696))
-  - Note that the unstable API of `queryRoute(path, routeId)` has been changed to `queryRoute(path, { routeId, requestContext })`
+## [1.6.1](https://github.com/axios/axios/compare/v1.6.0...v1.6.1) (2023-11-08)
 
-## 1.0.4
+### Bug Fixes
 
-### Patch Changes
+- **formdata:** fixed content-type header normalization for non-standard browser environments; ([#6056](https://github.com/axios/axios/issues/6056)) ([dd465ab](https://github.com/axios/axios/commit/dd465ab22bbfa262c6567be6574bf46a057d5288))
+- **platform:** fixed emulated browser detection in node.js environment; ([#6055](https://github.com/axios/axios/issues/6055)) ([3dc8369](https://github.com/axios/axios/commit/3dc8369e505e32a4e12c22f154c55fd63ac67fbb))
 
-- Throw an error if an `action`/`loader` function returns `undefined` as revalidations need to know whether the loader has previously been executed. `undefined` also causes issues during SSR stringification for hydration. You should always ensure you `loader`/`action` returns a value, and you may return `null` if you don't wish to return anything. ([#9511](https://github.com/remix-run/react-router/pull/9511))
-- Properly handle redirects to external domains ([#9590](https://github.com/remix-run/react-router/pull/9590), [#9654](https://github.com/remix-run/react-router/pull/9654))
-- Preserve the HTTP method on 307/308 redirects ([#9597](https://github.com/remix-run/react-router/pull/9597))
-- Support `basename` in static data routers ([#9591](https://github.com/remix-run/react-router/pull/9591))
-- Enhanced `ErrorResponse` bodies to contain more descriptive text in internal 403/404/405 scenarios
+### Contributors to this release
 
-## 1.0.3
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+432/-65 (#6059 #6056 #6055 )')
+- <img src="https://avatars.githubusercontent.com/u/3982806?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Fabian Meyer](https://github.com/meyfa '+5/-2 (#5835 )')
 
-### Patch Changes
+### PRs
 
-- Fix hrefs generated when using `createHashRouter` ([#9409](https://github.com/remix-run/react-router/pull/9409))
-- fix encoding/matching issues with special chars ([#9477](https://github.com/remix-run/react-router/pull/9477), [#9496](https://github.com/remix-run/react-router/pull/9496))
-- Support `basename` and relative routing in `loader`/`action` redirects ([#9447](https://github.com/remix-run/react-router/pull/9447))
-- Ignore pathless layout routes when looking for proper submission `action` function ([#9455](https://github.com/remix-run/react-router/pull/9455))
-- properly support `index` routes with a `path` in `useResolvedPath` ([#9486](https://github.com/remix-run/react-router/pull/9486))
-- Add UMD build for `@remix-run/router` ([#9446](https://github.com/remix-run/react-router/pull/9446))
-- fix `createURL` in local file execution in Firefox ([#9464](https://github.com/remix-run/react-router/pull/9464))
-- Updates to `unstable_createStaticHandler` for incorporating into Remix ([#9482](https://github.com/remix-run/react-router/pull/9482), [#9465](https://github.com/remix-run/react-router/pull/9465))
+- feat(withXSRFToken): added withXSRFToken option as a workaround to achieve the old &#x60;withCredentials&#x60; behavior; ( [#6046](https://api.github.com/repos/axios/axios/pulls/6046) )
 
-## 1.0.2
+```
 
-### Patch Changes
+📢 This PR added &#x27;withXSRFToken&#x27; option as a replacement for old withCredentials behaviour.
+You should now use withXSRFToken along with withCredential to get the old behavior.
+This functionality is considered as a fix.
+```
 
-- Reset `actionData` after a successful action redirect ([#9334](https://github.com/remix-run/react-router/pull/9334))
-- Update `matchPath` to avoid false positives on dash-separated segments ([#9300](https://github.com/remix-run/react-router/pull/9300))
-- If an index route has children, it will result in a runtime error. We have strengthened our `RouteObject`/`RouteProps` types to surface the error in TypeScript. ([#9366](https://github.com/remix-run/react-router/pull/9366))
+# [1.6.0](https://github.com/axios/axios/compare/v1.5.1...v1.6.0) (2023-10-26)
 
-## 1.0.1
+### Bug Fixes
 
-### Patch Changes
+- **CSRF:** fixed CSRF vulnerability CVE-2023-45857 ([#6028](https://github.com/axios/axios/issues/6028)) ([96ee232](https://github.com/axios/axios/commit/96ee232bd3ee4de2e657333d4d2191cd389e14d0))
+- **dns:** fixed lookup function decorator to work properly in node v20; ([#6011](https://github.com/axios/axios/issues/6011)) ([5aaff53](https://github.com/axios/axios/commit/5aaff532a6b820bb9ab6a8cd0f77131b47e2adb8))
+- **types:** fix AxiosHeaders types; ([#5931](https://github.com/axios/axios/issues/5931)) ([a1c8ad0](https://github.com/axios/axios/commit/a1c8ad008b3c13d53e135bbd0862587fb9d3fc09))
 
-- Preserve state from `initialEntries` ([#9288](https://github.com/remix-run/react-router/pull/9288))
-- Preserve `?index` for fetcher get submissions to index routes ([#9312](https://github.com/remix-run/react-router/pull/9312))
+### PRs
 
-## 1.0.0
+- CVE 2023 45857 ( [#6028](https://api.github.com/repos/axios/axios/pulls/6028) )
 
-This is the first stable release of `@remix-run/router`, which provides all the underlying routing and data loading/mutation logic for `react-router`. You should _not_ be using this package directly unless you are authoring a routing library similar to `react-router`.
+```
 
-For an overview of the features provided by `react-router`, we recommend you go check out the [docs](https://reactrouter.com), especially the [feature overview](https://reactrouter.com/en/6.4.0/start/overview) and the [tutorial](https://reactrouter.com/en/6.4.0/start/tutorial).
+⚠️ Critical vulnerability fix. See https://security.snyk.io/vuln/SNYK-JS-AXIOS-6032459
+```
 
-For an overview of the features provided by `@remix-run/router`, please check out the [`README`](./README.md).
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+449/-114 (#6032 #6021 #6011 #5932 #5931 )')
+- <img src="https://avatars.githubusercontent.com/u/63700910?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Valentin Panov](https://github.com/valentin-panov '+4/-4 (#6028 )')
+- <img src="https://avatars.githubusercontent.com/u/76877078?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Rinku Chaudhari](https://github.com/therealrinku '+1/-1 (#5889 )')
+
+## [1.5.1](https://github.com/axios/axios/compare/v1.5.0...v1.5.1) (2023-09-26)
+
+### Bug Fixes
+
+- **adapters:** improved adapters loading logic to have clear error messages; ([#5919](https://github.com/axios/axios/issues/5919)) ([e410779](https://github.com/axios/axios/commit/e4107797a7a1376f6209fbecfbbce73d3faa7859))
+- **formdata:** fixed automatic addition of the `Content-Type` header for FormData in non-browser environments; ([#5917](https://github.com/axios/axios/issues/5917)) ([bc9af51](https://github.com/axios/axios/commit/bc9af51b1886d1b3529617702f2a21a6c0ed5d92))
+- **headers:** allow `content-encoding` header to handle case-insensitive values ([#5890](https://github.com/axios/axios/issues/5890)) ([#5892](https://github.com/axios/axios/issues/5892)) ([4c89f25](https://github.com/axios/axios/commit/4c89f25196525e90a6e75eda9cb31ae0a2e18acd))
+- **types:** removed duplicated code ([9e62056](https://github.com/axios/axios/commit/9e6205630e1c9cf863adf141c0edb9e6d8d4b149))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+89/-18 (#5919 #5917 )')
+- <img src="https://avatars.githubusercontent.com/u/110460234?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [David Dallas](https://github.com/DavidJDallas '+11/-5 ()')
+- <img src="https://avatars.githubusercontent.com/u/71556073?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Sean Sattler](https://github.com/fb-sean '+2/-8 ()')
+- <img src="https://avatars.githubusercontent.com/u/4294069?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Mustafa Ateş Uzun](https://github.com/0o001 '+4/-4 ()')
+- <img src="https://avatars.githubusercontent.com/u/132928043?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Przemyslaw Motacki](https://github.com/sfc-gh-pmotacki '+2/-1 (#5892 )')
+- <img src="https://avatars.githubusercontent.com/u/5492927?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Michael Di Prisco](https://github.com/Cadienvan '+1/-1 ()')
+
+### PRs
+
+- CVE 2023 45857 ( [#6028](https://api.github.com/repos/axios/axios/pulls/6028) )
+
+```
+
+⚠️ Critical vulnerability fix. See https://security.snyk.io/vuln/SNYK-JS-AXIOS-6032459
+```
+
+# [1.5.0](https://github.com/axios/axios/compare/v1.4.0...v1.5.0) (2023-08-26)
+
+### Bug Fixes
+
+- **adapter:** make adapter loading error more clear by using platform-specific adapters explicitly ([#5837](https://github.com/axios/axios/issues/5837)) ([9a414bb](https://github.com/axios/axios/commit/9a414bb6c81796a95c6c7fe668637825458e8b6d))
+- **dns:** fixed `cacheable-lookup` integration; ([#5836](https://github.com/axios/axios/issues/5836)) ([b3e327d](https://github.com/axios/axios/commit/b3e327dcc9277bdce34c7ef57beedf644b00d628))
+- **headers:** added support for setting header names that overlap with class methods; ([#5831](https://github.com/axios/axios/issues/5831)) ([d8b4ca0](https://github.com/axios/axios/commit/d8b4ca0ea5f2f05efa4edfe1e7684593f9f68273))
+- **headers:** fixed common Content-Type header merging; ([#5832](https://github.com/axios/axios/issues/5832)) ([8fda276](https://github.com/axios/axios/commit/8fda2766b1e6bcb72c3fabc146223083ef13ce17))
+
+### Features
+
+- export getAdapter function ([#5324](https://github.com/axios/axios/issues/5324)) ([ca73eb8](https://github.com/axios/axios/commit/ca73eb878df0ae2dace81fe3a7f1fb5986231bf1))
+- **export:** export adapters without `unsafe` prefix ([#5839](https://github.com/axios/axios/issues/5839)) ([1601f4a](https://github.com/axios/axios/commit/1601f4a27a81ab47fea228f1e244b2c4e3ce28bf))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+66/-29 (#5839 #5837 #5836 #5832 #5831 )')
+- <img src="https://avatars.githubusercontent.com/u/102841186?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [夜葬](https://github.com/geekact '+42/-0 (#5324 )')
+- <img src="https://avatars.githubusercontent.com/u/65978976?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Jonathan Budiman](https://github.com/JBudiman00 '+30/-0 (#5788 )')
+- <img src="https://avatars.githubusercontent.com/u/5492927?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Michael Di Prisco](https://github.com/Cadienvan '+3/-5 (#5791 )')
+
+### PRs
+
+- CVE 2023 45857 ( [#6028](https://api.github.com/repos/axios/axios/pulls/6028) )
+
+```
+
+⚠️ Critical vulnerability fix. See https://security.snyk.io/vuln/SNYK-JS-AXIOS-6032459
+```
+
+# [1.4.0](https://github.com/axios/axios/compare/v1.3.6...v1.4.0) (2023-04-27)
+
+### Bug Fixes
+
+- **formdata:** add `multipart/form-data` content type for FormData payload on custom client environments; ([#5678](https://github.com/axios/axios/issues/5678)) ([bbb61e7](https://github.com/axios/axios/commit/bbb61e70cb1185adfb1cbbb86eaf6652c48d89d1))
+- **package:** export package internals with unsafe path prefix; ([#5677](https://github.com/axios/axios/issues/5677)) ([df38c94](https://github.com/axios/axios/commit/df38c949f26414d88ba29ec1e353c4d4f97eaf09))
+
+### Features
+
+- **dns:** added support for a custom lookup function; ([#5339](https://github.com/axios/axios/issues/5339)) ([2701911](https://github.com/axios/axios/commit/2701911260a1faa5cc5e1afe437121b330a3b7bb))
+- **types:** export `AxiosHeaderValue` type. ([#5525](https://github.com/axios/axios/issues/5525)) ([726f1c8](https://github.com/axios/axios/commit/726f1c8e00cffa0461a8813a9bdcb8f8b9d762cf))
+
+### Performance Improvements
+
+- **merge-config:** optimize mergeConfig performance by avoiding duplicate key visits; ([#5679](https://github.com/axios/axios/issues/5679)) ([e6f7053](https://github.com/axios/axios/commit/e6f7053bf1a3e87cf1f9da8677e12e3fe829d68e))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+151/-16 (#5684 #5339 #5679 #5678 #5677 )')
+- <img src="https://avatars.githubusercontent.com/u/47537704?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Arthur Fiorette](https://github.com/arthurfiorette '+19/-19 (#5525 )')
+- <img src="https://avatars.githubusercontent.com/u/43876655?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [PIYUSH NEGI](https://github.com/npiyush97 '+2/-18 (#5670 )')
+
+### PRs
+
+- CVE 2023 45857 ( [#6028](https://api.github.com/repos/axios/axios/pulls/6028) )
+
+```
+
+⚠️ Critical vulnerability fix. See https://security.snyk.io/vuln/SNYK-JS-AXIOS-6032459
+```
+
+## [1.3.6](https://github.com/axios/axios/compare/v1.3.5...v1.3.6) (2023-04-19)
+
+### Bug Fixes
+
+- **types:** added transport to RawAxiosRequestConfig ([#5445](https://github.com/axios/axios/issues/5445)) ([6f360a2](https://github.com/axios/axios/commit/6f360a2531d8d70363fd9becef6a45a323f170e2))
+- **utils:** make isFormData detection logic stricter to avoid unnecessary calling of the `toString` method on the target; ([#5661](https://github.com/axios/axios/issues/5661)) ([aa372f7](https://github.com/axios/axios/commit/aa372f7306295dfd1100c1c2c77ce95c95808e76))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+48/-10 (#5665 #5661 #5663 )')
+- <img src="https://avatars.githubusercontent.com/u/5492927?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Michael Di Prisco](https://github.com/Cadienvan '+2/-0 (#5445 )')
+
+### PRs
+
+- CVE 2023 45857 ( [#6028](https://api.github.com/repos/axios/axios/pulls/6028) )
+
+```
+
+⚠️ Critical vulnerability fix. See https://security.snyk.io/vuln/SNYK-JS-AXIOS-6032459
+```
+
+## [1.3.5](https://github.com/axios/axios/compare/v1.3.4...v1.3.5) (2023-04-05)
+
+### Bug Fixes
+
+- **headers:** fixed isValidHeaderName to support full list of allowed characters; ([#5584](https://github.com/axios/axios/issues/5584)) ([e7decef](https://github.com/axios/axios/commit/e7decef6a99f4627e27ed9ea5b00ce8e201c3841))
+- **params:** re-added the ability to set the function as `paramsSerializer` config; ([#5633](https://github.com/axios/axios/issues/5633)) ([a56c866](https://github.com/axios/axios/commit/a56c8661209d5ce5a645a05f294a0e08a6c1f6b3))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+28/-10 (#5633 #5584 )')
+
+### PRs
+
+- CVE 2023 45857 ( [#6028](https://api.github.com/repos/axios/axios/pulls/6028) )
+
+```
+
+⚠️ Critical vulnerability fix. See https://security.snyk.io/vuln/SNYK-JS-AXIOS-6032459
+```
+
+## [1.3.4](https://github.com/axios/axios/compare/v1.3.3...v1.3.4) (2023-02-22)
+
+### Bug Fixes
+
+- **blob:** added a check to make sure the Blob class is available in the browser's global scope; ([#5548](https://github.com/axios/axios/issues/5548)) ([3772c8f](https://github.com/axios/axios/commit/3772c8fe74112a56e3e9551f894d899bc3a9443a))
+- **http:** fixed regression bug when handling synchronous errors inside the adapter; ([#5564](https://github.com/axios/axios/issues/5564)) ([a3b246c](https://github.com/axios/axios/commit/a3b246c9de5c3bc4b5a742e15add55b375479451))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+38/-26 (#5564 )')
+- <img src="https://avatars.githubusercontent.com/u/19550000?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [lcysgsg](https://github.com/lcysgsg '+4/-0 (#5548 )')
+- <img src="https://avatars.githubusercontent.com/u/5492927?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Michael Di Prisco](https://github.com/Cadienvan '+3/-0 (#5444 )')
+
+### PRs
+
+- CVE 2023 45857 ( [#6028](https://api.github.com/repos/axios/axios/pulls/6028) )
+
+```
+
+⚠️ Critical vulnerability fix. See https://security.snyk.io/vuln/SNYK-JS-AXIOS-6032459
+```
+
+## [1.3.3](https://github.com/axios/axios/compare/v1.3.2...v1.3.3) (2023-02-13)
+
+### Bug Fixes
+
+- **formdata:** added a check to make sure the FormData class is available in the browser's global scope; ([#5545](https://github.com/axios/axios/issues/5545)) ([a6dfa72](https://github.com/axios/axios/commit/a6dfa72010db5ad52db8bd13c0f98e537e8fd05d))
+- **formdata:** fixed setting NaN as Content-Length for form payload in some cases; ([#5535](https://github.com/axios/axios/issues/5535)) ([c19f7bf](https://github.com/axios/axios/commit/c19f7bf770f90ae8307f4ea3104f227056912da1))
+- **headers:** fixed the filtering logic of the clear method; ([#5542](https://github.com/axios/axios/issues/5542)) ([ea87ebf](https://github.com/axios/axios/commit/ea87ebfe6d1699af072b9e7cd40faf8f14b0ab93))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+11/-7 (#5545 #5535 #5542 )')
+- <img src="https://avatars.githubusercontent.com/u/19842213?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [陈若枫](https://github.com/ruofee '+2/-2 (#5467 )')
+
+### PRs
+
+- CVE 2023 45857 ( [#6028](https://api.github.com/repos/axios/axios/pulls/6028) )
+
+```
+
+⚠️ Critical vulnerability fix. See https://security.snyk.io/vuln/SNYK-JS-AXIOS-6032459
+```
+
+## [1.3.2](https://github.com/axios/axios/compare/v1.3.1...v1.3.2) (2023-02-03)
+
+### Bug Fixes
+
+- **http:** treat http://localhost as base URL for relative paths to avoid `ERR_INVALID_URL` error; ([#5528](https://github.com/axios/axios/issues/5528)) ([128d56f](https://github.com/axios/axios/commit/128d56f4a0fb8f5f2ed6e0dd80bc9225fee9538c))
+- **http:** use explicit import instead of TextEncoder global; ([#5530](https://github.com/axios/axios/issues/5530)) ([6b3c305](https://github.com/axios/axios/commit/6b3c305fc40c56428e0afabedc6f4d29c2830f6f))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+2/-1 (#5530 #5528 )')
+
+### PRs
+
+- CVE 2023 45857 ( [#6028](https://api.github.com/repos/axios/axios/pulls/6028) )
+
+```
+
+⚠️ Critical vulnerability fix. See https://security.snyk.io/vuln/SNYK-JS-AXIOS-6032459
+```
+
+## [1.3.1](https://github.com/axios/axios/compare/v1.3.0...v1.3.1) (2023-02-01)
+
+### Bug Fixes
+
+- **formdata:** add hotfix to use the asynchronous API to compute the content-length header value; ([#5521](https://github.com/axios/axios/issues/5521)) ([96d336f](https://github.com/axios/axios/commit/96d336f527619f21da012fe1f117eeb53e5a2120))
+- **serializer:** fixed serialization of array-like objects; ([#5518](https://github.com/axios/axios/issues/5518)) ([08104c0](https://github.com/axios/axios/commit/08104c028c0f9353897b1b6691d74c440fd0c32d))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+27/-8 (#5521 #5518 )')
+
+### PRs
+
+- CVE 2023 45857 ( [#6028](https://api.github.com/repos/axios/axios/pulls/6028) )
+
+```
+
+⚠️ Critical vulnerability fix. See https://security.snyk.io/vuln/SNYK-JS-AXIOS-6032459
+```
+
+# [1.3.0](https://github.com/axios/axios/compare/v1.2.6...v1.3.0) (2023-01-31)
+
+### Bug Fixes
+
+- **headers:** fixed & optimized clear method; ([#5507](https://github.com/axios/axios/issues/5507)) ([9915635](https://github.com/axios/axios/commit/9915635c69d0ab70daca5738488421f67ca60959))
+- **http:** add zlib headers if missing ([#5497](https://github.com/axios/axios/issues/5497)) ([65e8d1e](https://github.com/axios/axios/commit/65e8d1e28ce829f47a837e45129730e541950d3c))
+
+### Features
+
+- **fomdata:** added support for spec-compliant FormData & Blob types; ([#5316](https://github.com/axios/axios/issues/5316)) ([6ac574e](https://github.com/axios/axios/commit/6ac574e00a06731288347acea1e8246091196953))
+
+### Contributors to this release
+
+- <img src="https://avatars.githubusercontent.com/u/12586868?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+352/-67 (#5514 #5512 #5510 #5509 #5508 #5316 #5507 )')
+- <img src="https://avatars.githubusercontent.com/u/35015993?v&#x3D;4&amp;s&#x3D;18" alt="avatar" width="18"/> [ItsNotGoodName](https://github.com/ItsNotGoodName '+43/-2 (#5497 )')
+
+### PRs
+
+- CVE 2023 45857 ( [#6028](https://api.github.com/repos/axios/axios/pulls/6028) )
+
+```
+
+⚠️ Critical vulnerability fix. See https://security.snyk.io/vuln/SNYK-JS-AXIOS-6032459
+```
+
+## [1.2.6](https://github.com/axios/axios/compare/v1.2.5...v1.2.6) (2023-01-28)
+
+### Bug Fixes
+
+- **headers:** added missed Authorization accessor; ([#5502](https://github.com/axios/axios/issues/5502)) ([342c0ba](https://github.com/axios/axios/commit/342c0ba9a16ea50f5ed7d2366c5c1a2c877e3f26))
+- **types:** fixed `CommonRequestHeadersList` & `CommonResponseHeadersList` types to be private in commonJS; ([#5503](https://github.com/axios/axios/issues/5503)) ([5a3d0a3](https://github.com/axios/axios/commit/5a3d0a3234d77361a1bc7cedee2da1e11df08e2c))
+
+### Contributors to this release
+
+- ![avatar](https://avatars.githubusercontent.com/u/12586868?v=4&s=16) [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+24/-9 (#5503 #5502 )')
+
+### PRs
+
+- CVE 2023 45857 ( [#6028](https://api.github.com/repos/axios/axios/pulls/6028) )
+
+```
+
+⚠️ Critical vulnerability fix. See https://security.snyk.io/vuln/SNYK-JS-AXIOS-6032459
+```
+
+## [1.2.5](https://github.com/axios/axios/compare/v1.2.4...v1.2.5) (2023-01-26)
+
+### Bug Fixes
+
+- **types:** fixed AxiosHeaders to handle spread syntax by making all methods non-enumerable; ([#5499](https://github.com/axios/axios/issues/5499)) ([580f1e8](https://github.com/axios/axios/commit/580f1e8033a61baa38149d59fd16019de3932c22))
+
+### Contributors to this release
+
+- ![avatar](https://avatars.githubusercontent.com/u/12586868?v=4&s=16) [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+82/-54 (#5499 )')
+- ![avatar](https://avatars.githubusercontent.com/u/20516159?v=4&s=16) [Elliot Ford](https://github.com/EFord36 '+1/-1 (#5462 )')
+
+### PRs
+
+- CVE 2023 45857 ( [#6028](https://api.github.com/repos/axios/axios/pulls/6028) )
+
+```
+
+⚠️ Critical vulnerability fix. See https://security.snyk.io/vuln/SNYK-JS-AXIOS-6032459
+```
+
+## [1.2.4](https://github.com/axios/axios/compare/v1.2.3...v1.2.4) (2023-01-22)
+
+### Bug Fixes
+
+- **types:** renamed `RawAxiosRequestConfig` back to `AxiosRequestConfig`; ([#5486](https://github.com/axios/axios/issues/5486)) ([2a71f49](https://github.com/axios/axios/commit/2a71f49bc6c68495fa419003a3107ed8bd703ad0))
+- **types:** fix `AxiosRequestConfig` generic; ([#5478](https://github.com/axios/axios/issues/5478)) ([9bce81b](https://github.com/axios/axios/commit/186ea062da8b7d578ae78b1a5c220986b9bce81b))
+
+### Contributors to this release
+
+- ![avatar](https://avatars.githubusercontent.com/u/12586868?v=4&s=16) [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+242/-108 (#5486 #5482 )')
+- ![avatar](https://avatars.githubusercontent.com/u/9430821?v=4&s=16) [Daniel Hillmann](https://github.com/hilleer '+1/-1 (#5478 )')
+
+### PRs
+
+- CVE 2023 45857 ( [#6028](https://api.github.com/repos/axios/axios/pulls/6028) )
+
+```
+
+⚠️ Critical vulnerability fix. See https://security.snyk.io/vuln/SNYK-JS-AXIOS-6032459
+```
+
+## [1.2.3](https://github.com/axios/axios/compare/1.2.2...1.2.3) (2023-01-10)
+
+### Bug Fixes
+
+- **types:** fixed AxiosRequestConfig header interface by refactoring it to RawAxiosRequestConfig; ([#5420](https://github.com/axios/axios/issues/5420)) ([0811963](https://github.com/axios/axios/commit/08119634a22f1d5b19f5c9ea0adccb6d3eebc3bc))
+
+### Contributors to this release
+
+- ![avatar](https://avatars.githubusercontent.com/u/12586868?v=4&s=16) [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS '+938/-442 (#5456 #5455 #5453 #5451 #5449 #5447 #5446 #5443 #5442 #5439 #5420 )')
+
+### PRs
+
+- CVE 2023 45857 ( [#6028](https://api.github.com/repos/axios/axios/pulls/6028) )
+
+```
+
+⚠️ Critical vulnerability fix. See https://security.snyk.io/vuln/SNYK-JS-AXIOS-6032459
+```
+
+## [1.2.2] - 2022-12-29
+
+### Fixed
+
+- fix(ci): fix release script inputs [#5392](https://github.com/axios/axios/pull/5392)
+- fix(ci): prerelease scipts [#5377](https://github.com/axios/axios/pull/5377)
+- fix(ci): release scripts [#5376](https://github.com/axios/axios/pull/5376)
+- fix(ci): typescript tests [#5375](https://github.com/axios/axios/pull/5375)
+- fix: Brotli decompression [#5353](https://github.com/axios/axios/pull/5353)
+- fix: add missing HttpStatusCode [#5345](https://github.com/axios/axios/pull/5345)
+
+### Chores
+
+- chore(ci): set conventional-changelog header config [#5406](https://github.com/axios/axios/pull/5406)
+- chore(ci): fix automatic contributors resolving [#5403](https://github.com/axios/axios/pull/5403)
+- chore(ci): improved logging for the contributors list generator [#5398](https://github.com/axios/axios/pull/5398)
+- chore(ci): fix release action [#5397](https://github.com/axios/axios/pull/5397)
+- chore(ci): fix version bump script by adding bump argument for target version [#5393](https://github.com/axios/axios/pull/5393)
+- chore(deps): bump decode-uri-component from 0.2.0 to 0.2.2 [#5342](https://github.com/axios/axios/pull/5342)
+- chore(ci): GitHub Actions Release script [#5384](https://github.com/axios/axios/pull/5384)
+- chore(ci): release scripts [#5364](https://github.com/axios/axios/pull/5364)
+
+### Contributors to this release
+
+- ![avatar](https://avatars.githubusercontent.com/u/12586868?v=4&s=16) [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS)
+- ![avatar](https://avatars.githubusercontent.com/u/1652293?v=4&s=16) [Winnie](https://github.com/winniehell)
+
+## [1.2.1] - 2022-12-05
+
+### Changed
+
+- feat(exports): export mergeConfig [#5151](https://github.com/axios/axios/pull/5151)
+
+### Fixed
+
+- fix(CancelledError): include config [#4922](https://github.com/axios/axios/pull/4922)
+- fix(general): removing multiple/trailing/leading whitespace [#5022](https://github.com/axios/axios/pull/5022)
+- fix(headers): decompression for responses without Content-Length header [#5306](https://github.com/axios/axios/pull/5306)
+- fix(webWorker): exception to sending form data in web worker [#5139](https://github.com/axios/axios/pull/5139)
+
+### Refactors
+
+- refactor(types): AxiosProgressEvent.event type to any [#5308](https://github.com/axios/axios/pull/5308)
+- refactor(types): add missing types for static AxiosError.from method [#4956](https://github.com/axios/axios/pull/4956)
+
+### Chores
+
+- chore(docs): remove README link to non-existent upgrade guide [#5307](https://github.com/axios/axios/pull/5307)
+- chore(docs): typo in issue template name [#5159](https://github.com/axios/axios/pull/5159)
+
+### Contributors to this release
+
+- [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS)
+- [Zachary Lysobey](https://github.com/zachlysobey)
+- [Kevin Ennis](https://github.com/kevincennis)
+- [Philipp Loose](https://github.com/phloose)
+- [secondl1ght](https://github.com/secondl1ght)
+- [wenzheng](https://github.com/0x30)
+- [Ivan Barsukov](https://github.com/ovarn)
+- [Arthur Fiorette](https://github.com/arthurfiorette)
+
+### PRs
+
+- CVE 2023 45857 ( [#6028](https://api.github.com/repos/axios/axios/pulls/6028) )
+
+```
+
+⚠️ Critical vulnerability fix. See https://security.snyk.io/vuln/SNYK-JS-AXIOS-6032459
+```
+
+## [1.2.0] - 2022-11-10
+
+### Changed
+
+- changed: refactored module exports [#5162](https://github.com/axios/axios/pull/5162)
+- change: re-added support for loading Axios with require('axios').default [#5225](https://github.com/axios/axios/pull/5225)
+
+### Fixed
+
+- fix: improve AxiosHeaders class [#5224](https://github.com/axios/axios/pull/5224)
+- fix: TypeScript type definitions for commonjs [#5196](https://github.com/axios/axios/pull/5196)
+- fix: type definition of use method on AxiosInterceptorManager to match the README [#5071](https://github.com/axios/axios/pull/5071)
+- fix: \_\_dirname is not defined in the sandbox [#5269](https://github.com/axios/axios/pull/5269)
+- fix: AxiosError.toJSON method to avoid circular references [#5247](https://github.com/axios/axios/pull/5247)
+- fix: Z_BUF_ERROR when content-encoding is set but the response body is empty [#5250](https://github.com/axios/axios/pull/5250)
+
+### Refactors
+
+- refactor: allowing adapters to be loaded by name [#5277](https://github.com/axios/axios/pull/5277)
+
+### Chores
+
+- chore: force CI restart [#5243](https://github.com/axios/axios/pull/5243)
+- chore: update ECOSYSTEM.md [#5077](https://github.com/axios/axios/pull/5077)
+- chore: update get/index.html [#5116](https://github.com/axios/axios/pull/5116)
+- chore: update Sandbox UI/UX [#5205](https://github.com/axios/axios/pull/5205)
+- chore:(actions): remove git credentials after checkout [#5235](https://github.com/axios/axios/pull/5235)
+- chore(actions): bump actions/dependency-review-action from 2 to 3 [#5266](https://github.com/axios/axios/pull/5266)
+- chore(packages): bump loader-utils from 1.4.1 to 1.4.2 [#5295](https://github.com/axios/axios/pull/5295)
+- chore(packages): bump engine.io from 6.2.0 to 6.2.1 [#5294](https://github.com/axios/axios/pull/5294)
+- chore(packages): bump socket.io-parser from 4.0.4 to 4.0.5 [#5241](https://github.com/axios/axios/pull/5241)
+- chore(packages): bump loader-utils from 1.4.0 to 1.4.1 [#5245](https://github.com/axios/axios/pull/5245)
+- chore(docs): update Resources links in README [#5119](https://github.com/axios/axios/pull/5119)
+- chore(docs): update the link for JSON url [#5265](https://github.com/axios/axios/pull/5265)
+- chore(docs): fix broken links [#5218](https://github.com/axios/axios/pull/5218)
+- chore(docs): update and rename UPGRADE_GUIDE.md to MIGRATION_GUIDE.md [#5170](https://github.com/axios/axios/pull/5170)
+- chore(docs): typo fix line #856 and #920 [#5194](https://github.com/axios/axios/pull/5194)
+- chore(docs): typo fix #800 [#5193](https://github.com/axios/axios/pull/5193)
+- chore(docs): fix typos [#5184](https://github.com/axios/axios/pull/5184)
+- chore(docs): fix punctuation in README.md [#5197](https://github.com/axios/axios/pull/5197)
+- chore(docs): update readme in the Handling Errors section - issue reference #5260 [#5261](https://github.com/axios/axios/pull/5261)
+- chore: remove \b from filename [#5207](https://github.com/axios/axios/pull/5207)
+- chore(docs): update CHANGELOG.md [#5137](https://github.com/axios/axios/pull/5137)
+- chore: add sideEffects false to package.json [#5025](https://github.com/axios/axios/pull/5025)
+
+### Contributors to this release
+
+- [Maddy Miller](https://github.com/me4502)
+- [Amit Saini](https://github.com/amitsainii)
+- [ecyrbe](https://github.com/ecyrbe)
+- [Ikko Ashimine](https://github.com/eltociear)
+- [Geeth Gunnampalli](https://github.com/thetechie7)
+- [Shreem Asati](https://github.com/shreem-123)
+- [Frieder Bluemle](https://github.com/friederbluemle)
+- [윤세영](https://github.com/yunseyeong)
+- [Claudio Busatto](https://github.com/cjcbusatto)
+- [Remco Haszing](https://github.com/remcohaszing)
+- [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS)
+- [Csaba Maulis](https://github.com/om4csaba)
+- [MoPaMo](https://github.com/MoPaMo)
+- [Daniel Fjeldstad](https://github.com/w3bdesign)
+- [Adrien Brunet](https://github.com/adrien-may)
+- [Frazer Smith](https://github.com/Fdawgs)
+- [HaiTao](https://github.com/836334258)
+- [AZM](https://github.com/aziyatali)
+- [relbns](https://github.com/relbns)
+
+### PRs
+
+- CVE 2023 45857 ( [#6028](https://api.github.com/repos/axios/axios/pulls/6028) )
+
+```
+
+⚠️ Critical vulnerability fix. See https://security.snyk.io/vuln/SNYK-JS-AXIOS-6032459
+```
+
+## [1.1.3] - 2022-10-15
+
+### Added
+
+- Added custom params serializer support [#5113](https://github.com/axios/axios/pull/5113)
+
+### Fixed
+
+- Fixed top-level export to keep them in-line with static properties [#5109](https://github.com/axios/axios/pull/5109)
+- Stopped including null values to query string. [#5108](https://github.com/axios/axios/pull/5108)
+- Restored proxy config backwards compatibility with 0.x [#5097](https://github.com/axios/axios/pull/5097)
+- Added back AxiosHeaders in AxiosHeaderValue [#5103](https://github.com/axios/axios/pull/5103)
+- Pin CDN install instructions to a specific version [#5060](https://github.com/axios/axios/pull/5060)
+- Handling of array values fixed for AxiosHeaders [#5085](https://github.com/axios/axios/pull/5085)
+
+### Chores
+
+- docs: match badge style, add link to them [#5046](https://github.com/axios/axios/pull/5046)
+- chore: fixing comments typo [#5054](https://github.com/axios/axios/pull/5054)
+- chore: update issue template [#5061](https://github.com/axios/axios/pull/5061)
+- chore: added progress capturing section to the docs; [#5084](https://github.com/axios/axios/pull/5084)
+
+### Contributors to this release
+
+- [Jason Saayman](https://github.com/jasonsaayman)
+- [scarf](https://github.com/scarf005)
+- [Lenz Weber-Tronic](https://github.com/phryneas)
+- [Arvindh](https://github.com/itsarvindh)
+- [Félix Legrelle](https://github.com/FelixLgr)
+- [Patrick Petrovic](https://github.com/ppati000)
+- [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS)
+- [littledian](https://github.com/littledian)
+- [ChronosMasterOfAllTime](https://github.com/ChronosMasterOfAllTime)
+
+### PRs
+
+- CVE 2023 45857 ( [#6028](https://api.github.com/repos/axios/axios/pulls/6028) )
+
+```
+
+⚠️ Critical vulnerability fix. See https://security.snyk.io/vuln/SNYK-JS-AXIOS-6032459
+```
+
+## [1.1.2] - 2022-10-07
+
+### Fixed
+
+- Fixed broken exports for UMD builds.
+
+### Contributors to this release
+
+- [Jason Saayman](https://github.com/jasonsaayman)
+
+### PRs
+
+- CVE 2023 45857 ( [#6028](https://api.github.com/repos/axios/axios/pulls/6028) )
+
+```
+
+⚠️ Critical vulnerability fix. See https://security.snyk.io/vuln/SNYK-JS-AXIOS-6032459
+```
+
+## [1.1.1] - 2022-10-07
+
+### Fixed
+
+- Fixed broken exports for common js. This fix breaks a prior fix, I will fix both issues ASAP but the commonJS use is more impactful.
+
+### Contributors to this release
+
+- [Jason Saayman](https://github.com/jasonsaayman)
+
+### PRs
+
+- CVE 2023 45857 ( [#6028](https://api.github.com/repos/axios/axios/pulls/6028) )
+
+```
+
+⚠️ Critical vulnerability fix. See https://security.snyk.io/vuln/SNYK-JS-AXIOS-6032459
+```
+
+## [1.1.0] - 2022-10-06
+
+### Fixed
+
+- Fixed missing exports in type definition index.d.ts [#5003](https://github.com/axios/axios/pull/5003)
+- Fixed query params composing [#5018](https://github.com/axios/axios/pull/5018)
+- Fixed GenericAbortSignal interface by making it more generic [#5021](https://github.com/axios/axios/pull/5021)
+- Fixed adding "clear" to AxiosInterceptorManager [#5010](https://github.com/axios/axios/pull/5010)
+- Fixed commonjs & umd exports [#5030](https://github.com/axios/axios/pull/5030)
+- Fixed inability to access response headers when using axios 1.x with Jest [#5036](https://github.com/axios/axios/pull/5036)
+
+### Contributors to this release
+
+- [Trim21](https://github.com/trim21)
+- [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS)
+- [shingo.sasaki](https://github.com/s-sasaki-0529)
+- [Ivan Pepelko](https://github.com/ivanpepelko)
+- [Richard Kořínek](https://github.com/risa)
+
+### PRs
+
+- CVE 2023 45857 ( [#6028](https://api.github.com/repos/axios/axios/pulls/6028) )
+
+```
+
+⚠️ Critical vulnerability fix. See https://security.snyk.io/vuln/SNYK-JS-AXIOS-6032459
+```
+
+## [1.0.0] - 2022-10-04
+
+### Added
+
+- Added stack trace to AxiosError [#4624](https://github.com/axios/axios/pull/4624)
+- Add AxiosError to AxiosStatic [#4654](https://github.com/axios/axios/pull/4654)
+- Replaced Rollup as our build runner [#4596](https://github.com/axios/axios/pull/4596)
+- Added generic TS types for the exposed toFormData helper [#4668](https://github.com/axios/axios/pull/4668)
+- Added listen callback function [#4096](https://github.com/axios/axios/pull/4096)
+- Added instructions for installing using PNPM [#4207](https://github.com/axios/axios/pull/4207)
+- Added generic AxiosAbortSignal TS interface to avoid importing AbortController polyfill [#4229](https://github.com/axios/axios/pull/4229)
+- Added axios-url-template in ECOSYSTEM.md [#4238](https://github.com/axios/axios/pull/4238)
+- Added a clear() function to the request and response interceptors object so a user can ensure that all interceptors have been removed from an axios instance [#4248](https://github.com/axios/axios/pull/4248)
+- Added react hook plugin [#4319](https://github.com/axios/axios/pull/4319)
+- Adding HTTP status code for transformResponse [#4580](https://github.com/axios/axios/pull/4580)
+- Added blob to the list of protocols supported by the browser [#4678](https://github.com/axios/axios/pull/4678)
+- Resolving proxy from env on redirect [#4436](https://github.com/axios/axios/pull/4436)
+- Added enhanced toFormData implementation with additional options [4704](https://github.com/axios/axios/pull/4704)
+- Adding Canceler parameters config and request [#4711](https://github.com/axios/axios/pull/4711)
+- Added automatic payload serialization to application/x-www-form-urlencoded [#4714](https://github.com/axios/axios/pull/4714)
+- Added the ability for webpack users to overwrite built-ins [#4715](https://github.com/axios/axios/pull/4715)
+- Added string[] to AxiosRequestHeaders type [#4322](https://github.com/axios/axios/pull/4322)
+- Added the ability for the url-encoded-form serializer to respect the formSerializer config [#4721](https://github.com/axios/axios/pull/4721)
+- Added isCancel type assert [#4293](https://github.com/axios/axios/pull/4293)
+- Added data URL support for node.js [#4725](https://github.com/axios/axios/pull/4725)
+- Adding types for progress event callbacks [#4675](https://github.com/axios/axios/pull/4675)
+- URL params serializer [#4734](https://github.com/axios/axios/pull/4734)
+- Added axios.formToJSON method [#4735](https://github.com/axios/axios/pull/4735)
+- Bower platform add data protocol [#4804](https://github.com/axios/axios/pull/4804)
+- Use WHATWG URL API instead of url.parse() [#4852](https://github.com/axios/axios/pull/4852)
+- Add ENUM containing Http Status Codes to typings [#4903](https://github.com/axios/axios/pull/4903)
+- Improve typing of timeout in index.d.ts [#4934](https://github.com/axios/axios/pull/4934)
+
+### Changed
+
+- Updated AxiosError.config to be optional in the type definition [#4665](https://github.com/axios/axios/pull/4665)
+- Updated README emphasizing the URLSearchParam built-in interface over other solutions [#4590](https://github.com/axios/axios/pull/4590)
+- Include request and config when creating a CanceledError instance [#4659](https://github.com/axios/axios/pull/4659)
+- Changed func-names eslint rule to as-needed [#4492](https://github.com/axios/axios/pull/4492)
+- Replacing deprecated substr() with slice() as substr() is deprecated [#4468](https://github.com/axios/axios/pull/4468)
+- Updating HTTP links in README.md to use HTTPS [#4387](https://github.com/axios/axios/pull/4387)
+- Updated to a better trim() polyfill [#4072](https://github.com/axios/axios/pull/4072)
+- Updated types to allow specifying partial default headers on instance create [#4185](https://github.com/axios/axios/pull/4185)
+- Expanded isAxiosError types [#4344](https://github.com/axios/axios/pull/4344)
+- Updated type definition for axios instance methods [#4224](https://github.com/axios/axios/pull/4224)
+- Updated eslint config [#4722](https://github.com/axios/axios/pull/4722)
+- Updated Docs [#4742](https://github.com/axios/axios/pull/4742)
+- Refactored Axios to use ES2017 [#4787](https://github.com/axios/axios/pull/4787)
+
+### Deprecated
+
+- There are multiple deprecations, refactors and fixes provided in this release. Please read through the full release notes to see how this may impact your project and use case.
+
+### Removed
+
+- Removed incorrect argument for NetworkError constructor [#4656](https://github.com/axios/axios/pull/4656)
+- Removed Webpack [#4596](https://github.com/axios/axios/pull/4596)
+- Removed function that transform arguments to array [#4544](https://github.com/axios/axios/pull/4544)
+
+### Fixed
+
+- Fixed grammar in README [#4649](https://github.com/axios/axios/pull/4649)
+- Fixed code error in README [#4599](https://github.com/axios/axios/pull/4599)
+- Optimized the code that checks cancellation [#4587](https://github.com/axios/axios/pull/4587)
+- Fix url pointing to defaults.js in README [#4532](https://github.com/axios/axios/pull/4532)
+- Use type alias instead of interface for AxiosPromise [#4505](https://github.com/axios/axios/pull/4505)
+- Fix some word spelling and lint style in code comments [#4500](https://github.com/axios/axios/pull/4500)
+- Edited readme with 3 updated browser icons of Chrome, FireFox and Safari [#4414](https://github.com/axios/axios/pull/4414)
+- Bump follow-redirects from 1.14.9 to 1.15.0 [#4673](https://github.com/axios/axios/pull/4673)
+- Fixing http tests to avoid hanging when assertions fail [#4435](https://github.com/axios/axios/pull/4435)
+- Fix TS definition for AxiosRequestTransformer [#4201](https://github.com/axios/axios/pull/4201)
+- Fix grammatical issues in README [#4232](https://github.com/axios/axios/pull/4232)
+- Fixing instance.defaults.headers type [#4557](https://github.com/axios/axios/pull/4557)
+- Fixed race condition on immediate requests cancellation [#4261](https://github.com/axios/axios/pull/4261)
+- Fixing Z_BUF_ERROR when no content [#4701](https://github.com/axios/axios/pull/4701)
+- Fixing proxy beforeRedirect regression [#4708](https://github.com/axios/axios/pull/4708)
+- Fixed AxiosError status code type [#4717](https://github.com/axios/axios/pull/4717)
+- Fixed AxiosError stack capturing [#4718](https://github.com/axios/axios/pull/4718)
+- Fixing AxiosRequestHeaders typings [#4334](https://github.com/axios/axios/pull/4334)
+- Fixed max body length defaults [#4731](https://github.com/axios/axios/pull/4731)
+- Fixed toFormData Blob issue on node>v17 [#4728](https://github.com/axios/axios/pull/4728)
+- Bump grunt from 1.5.2 to 1.5.3 [#4743](https://github.com/axios/axios/pull/4743)
+- Fixing content-type header repeated [#4745](https://github.com/axios/axios/pull/4745)
+- Fixed timeout error message for http [4738](https://github.com/axios/axios/pull/4738)
+- Request ignores false, 0 and empty string as body values [#4785](https://github.com/axios/axios/pull/4785)
+- Added back missing minified builds [#4805](https://github.com/axios/axios/pull/4805)
+- Fixed a type error [#4815](https://github.com/axios/axios/pull/4815)
+- Fixed a regression bug with unsubscribing from cancel token; [#4819](https://github.com/axios/axios/pull/4819)
+- Remove repeated compression algorithm [#4820](https://github.com/axios/axios/pull/4820)
+- The error of calling extend to pass parameters [#4857](https://github.com/axios/axios/pull/4857)
+- SerializerOptions.indexes allows boolean | null | undefined [#4862](https://github.com/axios/axios/pull/4862)
+- Require interceptors to return values [#4874](https://github.com/axios/axios/pull/4874)
+- Removed unused imports [#4949](https://github.com/axios/axios/pull/4949)
+- Allow null indexes on formSerializer and paramsSerializer [#4960](https://github.com/axios/axios/pull/4960)
+
+### Chores
+
+- Set permissions for GitHub actions [#4765](https://github.com/axios/axios/pull/4765)
+- Included githubactions in the dependabot config [#4770](https://github.com/axios/axios/pull/4770)
+- Included dependency review [#4771](https://github.com/axios/axios/pull/4771)
+- Update security.md [#4784](https://github.com/axios/axios/pull/4784)
+- Remove unnecessary spaces [#4854](https://github.com/axios/axios/pull/4854)
+- Simplify the import path of AxiosError [#4875](https://github.com/axios/axios/pull/4875)
+- Fix Gitpod dead link [#4941](https://github.com/axios/axios/pull/4941)
+- Enable syntax highlighting for a code block [#4970](https://github.com/axios/axios/pull/4970)
+- Using Logo Axios in Readme.md [#4993](https://github.com/axios/axios/pull/4993)
+- Fix markup for note in README [#4825](https://github.com/axios/axios/pull/4825)
+- Fix typo and formatting, add colons [#4853](https://github.com/axios/axios/pull/4853)
+- Fix typo in readme [#4942](https://github.com/axios/axios/pull/4942)
+
+### Security
+
+- Update SECURITY.md [#4687](https://github.com/axios/axios/pull/4687)
+
+### Contributors to this release
+
+- [Bertrand Marron](https://github.com/tusbar)
+- [Dmitriy Mozgovoy](https://github.com/DigitalBrainJS)
+- [Dan Mooney](https://github.com/danmooney)
+- [Michael Li](https://github.com/xiaoyu-tamu)
+- [aong](https://github.com/yxwzaxns)
+- [Des Preston](https://github.com/despreston)
+- [Ted Robertson](https://github.com/tredondo)
+- [zhoulixiang](https://github.com/zh-lx)
+- [Arthur Fiorette](https://github.com/arthurfiorette)
+- [Kumar Shanu](https://github.com/Kr-Shanu)
+- [JALAL](https://github.com/JLL32)
+- [Jingyi Lin](https://github.com/MageeLin)
+- [Philipp Loose](https://github.com/phloose)
+- [Alexander Shchukin](https://github.com/sashsvamir)
+- [Dave Cardwell](https://github.com/davecardwell)
+- [Cat Scarlet](https://github.com/catscarlet)
+- [Luca Pizzini](https://github.com/lpizzinidev)
+- [Kai](https://github.com/Schweinepriester)
+- [Maxime Bargiel](https://github.com/mbargiel)
+- [Brian Helba](https://github.com/brianhelba)
+- [reslear](https://github.com/reslear)
+- [Jamie Slome](https://github.com/JamieSlome)
+- [Landro3](https://github.com/Landro3)
+- [rafw87](https://github.com/rafw87)
+- [Afzal Sayed](https://github.com/afzalsayed96)
+- [Koki Oyatsu](https://github.com/kaishuu0123)
+- [Dave](https://github.com/wangcch)
+- [暴走老七](https://github.com/baozouai)
+- [Spencer](https://github.com/spalger)
+- [Adrian Wieprzkowicz](https://github.com/Argeento)
+- [Jamie Telin](https://github.com/lejahmie)
+- [毛呆](https://github.com/aweikalee)
+- [Kirill Shakirov](https://github.com/turisap)
+- [Rraji Abdelbari](https://github.com/estarossa0)
+- [Jelle Schutter](https://github.com/jelleschutter)
+- [Tom Ceuppens](https://github.com/KyorCode)
+- [Johann Cooper](https://github.com/JohannCooper)
+- [Dimitris Halatsis](https://github.com/mitsos1os)
+- [chenjigeng](https://github.com/chenjigeng)
+- [João Gabriel Quaresma](https://github.com/joaoGabriel55)
+- [Victor Augusto](https://github.com/VictorAugDB)
+- [neilnaveen](https://github.com/neilnaveen)
+- [Pavlos](https://github.com/psmoros)
+- [Kiryl Valkovich](https://github.com/visortelle)
+- [Naveen](https://github.com/naveensrinivasan)
+- [wenzheng](https://github.com/0x30)
+- [hcwhan](https://github.com/hcwhan)
+- [Bassel Rachid](https://github.com/basselworkforce)
+- [Grégoire Pineau](https://github.com/lyrixx)
+- [felipedamin](https://github.com/felipedamin)
+- [Karl Horky](https://github.com/karlhorky)
+- [Yue JIN](https://github.com/kingyue737)
+- [Usman Ali Siddiqui](https://github.com/usman250994)
+- [WD](https://github.com/techbirds)
+- [Günther Foidl](https://github.com/gfoidl)
+- [Stephen Jennings](https://github.com/jennings)
+- [C.T.Lin](https://github.com/chentsulin)
+- [mia-z](https://github.com/mia-z)
+- [Parth Banathia](https://github.com/Parth0105)
+- [parth0105pluang](https://github.com/parth0105pluang)
+- [Marco Weber](https://github.com/mrcwbr)
+- [Luca Pizzini](https://github.com/lpizzinidev)
+- [Willian Agostini](https://github.com/WillianAgostini)
+
+- [Huyen Nguyen](https://github.com/huyenltnguyen)
