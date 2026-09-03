@@ -1,1073 +1,916 @@
-# Changelog
+# `@remix-run/router`
 
-> **Tags:**
-> - :boom:       [Breaking Change]
-> - :eyeglasses: [Spec Compliance]
-> - :rocket:     [New Feature]
-> - :bug:        [Bug Fix]
-> - :memo:       [Documentation]
-> - :house:      [Internal]
-> - :nail_care:  [Polish]
+## v1.23.4
 
-> Semver Policy: https://github.com/babel/babel/tree/main/packages/babel-parser#semver
+### Patch Changes
 
-_Note: Gaps between patch versions are faulty, broken or test releases._
+- Fix double slash normalization for `useNavigate` colon urls ([3ed85d5](https://github.com/remix-run/react-router/commit/3ed85d5))
 
-See the [Babel Changelog](https://github.com/babel/babel/blob/main/CHANGELOG.md) for the pre-6.8.0 version Changelog.
+  - As a reminder, `navigate()` is only intended for navigations within the React Router application and not for external navigations to other domains
+  - This change may be a breaking bug fix if you are using `navigate` for external navigations
 
-## 6.17.1 (2017-05-10)
+## v1.23.3
 
-### :bug: Bug Fix
- * Fix typo in flow spread operator error (Brian Ng)
- * Fixed invalid number literal parsing ([#473](https://github.com/babel/babylon/pull/473)) (Alex Kuzmenko)
- * Fix number parser ([#433](https://github.com/babel/babylon/pull/433)) (Alex Kuzmenko)
- * Ensure non pattern shorthand props are checked for reserved words ([#479](https://github.com/babel/babylon/pull/479)) (Brian Ng)
- * Remove jsx context when parsing arrow functions ([#475](https://github.com/babel/babylon/pull/475)) (Brian Ng)
- * Allow super in class properties ([#499](https://github.com/babel/babylon/pull/499)) (Brian Ng)
- * Allow flow class field to be named constructor ([#510](https://github.com/babel/babylon/pull/510)) (Brian Ng)
+### Patch Changes
 
-## 6.17.0 (2017-04-20)
+- Lift `decodePath` call out of hot path during route matching ([#15119](https://github.com/remix-run/react-router/pull/15119))
+- Normalize double slashes in redirect paths ([#15118](https://github.com/remix-run/react-router/pull/15118))
 
-### :bug: Bug Fix
- * Cherry-pick #418 to 6.x ([#476](https://github.com/babel/babylon/pull/476)) (Sebastian McKenzie)
- * Add support for invalid escapes in tagged templates ([#274](https://github.com/babel/babylon/pull/274)) (Kevin Gibbons)
- * Throw error if new.target is used outside of a function ([#402](https://github.com/babel/babylon/pull/402)) (Brian Ng)
- * Fix parsing of class properties ([#351](https://github.com/babel/babylon/pull/351)) (Kevin Gibbons)
- * Fix parsing yield with dynamicImport ([#383](https://github.com/babel/babylon/pull/383)) (Brian Ng)
- * Ensure consistent start args for parseParenItem ([#386](https://github.com/babel/babylon/pull/386)) (Brian Ng)
+## 1.23.2
 
-## 7.0.0-beta.8 (2017-04-04)
+### Patch Changes
 
-### New Feature
-* Add support for flow type spread (#418) (Conrad Buck)
-* Allow statics in flow interfaces (#427) (Brian Ng)
+- Validate redirect locations ([#14707](https://github.com/remix-run/react-router/pull/14707))
 
-### Bug Fix
-* Fix predicate attachment to match flow parser (#428) (Brian Ng)
-* Add extra.raw back to JSXText and JSXAttribute (#344) (Alex Rattray)
-* Fix rest parameters with array and objects (#424) (Brian Ng)
-* Fix number parser (#433) (Alex Kuzmenko)
+## 1.23.1
 
-### Docs
-* Fix CONTRIBUTING.md [skip ci] (#432) (Alex Kuzmenko)
+### Patch Changes
 
-### Internal
-* Use babel-register script when running babel smoke tests (#442) (Brian Ng)
+- Normalize double-slashes in `resolvePath` ([#14537](https://github.com/remix-run/react-router/pull/14537))
 
-## 7.0.0-beta.7 (2017-03-22)
+## 1.23.0
 
-### Spec Compliance
-* Remove babylon plugin for template revision since it's stage-4 (#426) (Henry Zhu)
+### Minor Changes
 
-### Bug Fix
+- Add `fetcherKey` as a parameter to `patchRoutesOnNavigation` ([#13109](https://github.com/remix-run/react-router/pull/13109))
 
-* Fix push-pop logic in flow (#405) (Daniel Tschinder)
+### Patch Changes
 
-## 7.0.0-beta.6 (2017-03-21)
+- Fix regression introduced in `6.29.0` via [#12169](https://github.com/remix-run/react-router/pull/12169) that caused issues navigating to hash routes inside splat routes for applications using Lazy Route Discovery (`patchRoutesOnNavigation`) ([#13108](https://github.com/remix-run/react-router/pull/13108))
 
-### New Feature
-* Add support for invalid escapes in tagged templates (#274) (Kevin Gibbons)
+## 1.22.0
 
-### Polish
-* Improves error message when super is called outside of constructor (#408) (Arshabh Kumar Agarwal)
+### Minor Changes
 
-### Docs
+- Provide the request `signal` as a parameter to `patchRoutesOnNavigation` ([#12900](https://github.com/remix-run/react-router/pull/12900))
 
-* [7.0] Moved value field in spec from ObjectMember to ObjectProperty as ObjectMethod's don't have it (#415) [skip ci] (James Browning)
+  - This can be used to abort any manifest fetches if the in-flight navigation/fetcher is aborted
 
-## 7.0.0-beta.5 (2017-03-21)
+### Patch Changes
 
-### Bug Fix
-* Throw error if new.target is used outside of a function (#402) (Brian Ng)
-* Fix parsing of class properties (#351) (Kevin Gibbons)
+- Do not log v7 deprecation warnings in production builds ([#12794](https://github.com/remix-run/react-router/pull/12794))
+- Strip search parameters from `patchRoutesOnNavigation` `path` param for fetcher calls ([#12899](https://github.com/remix-run/react-router/pull/12899))
+- Properly bubble headers when throwing a `data()` result ([#12845](https://github.com/remix-run/react-router/pull/12845))
+- Optimize route matching by skipping redundant `matchRoutes` calls when possible ([#12169](https://github.com/remix-run/react-router/pull/12169))
 
-### Other
- * Test runner: Detect extra property in 'actual' but not in 'expected'. (#407) (Andy)
- * Optimize travis builds (#419) (Daniel Tschinder)
- * Update codecov to 2.0 (#412) (Daniel Tschinder)
- * Fix spec for ClassMethod: It doesn't have a function, it *is* a function. (#406) [skip ci] (Andy)
- * Changed Non-existent RestPattern to RestElement which is what is actually parsed (#409) [skip ci] (James Browning)
- * Upgrade flow to 0.41 (Daniel Tschinder)
- * Fix watch command (#403) (Brian Ng)
- * Update yarn lock (Daniel Tschinder)
- * Fix watch command (#403) (Brian Ng)
- * chore(package): update flow-bin to version 0.41.0 (#395) (greenkeeper[bot])
- * Add estree test for correct order of directives (Daniel Tschinder)
- * Add DoExpression to spec (#364) (Alex Kuzmenko)
- * Mention cloning of repository in CONTRIBUTING.md (#391) [skip ci] (Sumedh Nimkarde)
- * Explain how to run only one test (#389) [skip ci] (Aaron Ang)
+## 1.21.1
 
- ## 7.0.0-beta.4 (2017-03-01)
+### Patch Changes
 
-* Don't consume async when checking for async func decl (#377) (Brian Ng)
-* add `ranges` option [skip ci] (Henry Zhu)
-* Don't parse class properties without initializers when classProperties is disabled and Flow is enabled (#300) (Andrew Levine)
+- - Fix issue with fetcher data cleanup in the data layer on fetcher unmount ([#12674](https://github.com/remix-run/react-router/pull/12674))
+  - Fix behavior of manual fetcher keys when not opted into `future.v7_fetcherPersist`
 
-## 7.0.0-beta.3 (2017-02-28)
+## 1.21.0
 
-- [7.0] Change RestProperty/SpreadProperty to RestElement/SpreadElement (#384)
-- Merge changes from 6.x
+### Minor Changes
 
-## 7.0.0-beta.2 (2017-02-20)
+- - Log deprecation warnings for v7 flags ([#11750](https://github.com/remix-run/react-router/pull/11750))
+  - Add deprecation warnings to `json`/`defer` in favor of returning raw objects
+    - These methods will be removed in React Router v7
 
-- estree: correctly change literals in all cases (#368) (Daniel Tschinder)
+### Patch Changes
 
-## 7.0.0-beta.1 (2017-02-20)
+- Update JSDoc URLs for new website structure (add /v6/ segment) ([#12141](https://github.com/remix-run/react-router/pull/12141))
 
-- Fix negative number literal typeannotations (#366) (Daniel Tschinder)
-- Update contributing with more test info [skip ci] (#355) (Brian Ng)
+## 1.20.0
 
-## 7.0.0-beta.0 (2017-02-15)
+### Minor Changes
 
-- Reintroduce Variance node (#333) (Daniel Tschinder)
-- Rename NumericLiteralTypeAnnotation to NumberLiteralTypeAnnotation (#332) (Charles Pick)
-- [7.0] Remove ForAwaitStatement, add await flag to ForOfStatement (#349) (Brandon Dail)
-- chore(package): update ava to version 0.18.0 (#345) (greenkeeper[bot])
-- chore(package): update babel-plugin-istanbul to version 4.0.0 (#350) (greenkeeper[bot])
-- Change location of ObjectTypeIndexer to match flow (#228) (Daniel Tschinder)
-- Rename flow AST Type ExistentialTypeParam to ExistsTypeAnnotation (#322) (Toru Kobayashi)
-- Revert "Temporary rollback for erroring on trailing comma with spread (#154)" (#290) (Daniel Tschinder)
-- Remove classConstructorCall plugin (#291) (Brian Ng)
-- Update yarn.lock (Daniel Tschinder)
-- Update cross-env to 3.x (Daniel Tschinder)
-- [7.0] Remove node 0.10, 0.12 and 5 from Travis (#284) (Sergey Rubanov)
-- Remove `String.fromCodePoint` shim (#279) (Mathias Bynens)
+- Stabilize `unstable_patchRoutesOnNavigation` ([#11973](https://github.com/remix-run/react-router/pull/11973))
+  - Add new `PatchRoutesOnNavigationFunctionArgs` type for convenience ([#11967](https://github.com/remix-run/react-router/pull/11967))
+- Stabilize `unstable_dataStrategy` ([#11974](https://github.com/remix-run/react-router/pull/11974))
+- Stabilize the `unstable_flushSync` option for navigations and fetchers ([#11989](https://github.com/remix-run/react-router/pull/11989))
+- Stabilize the `unstable_viewTransition` option for navigations and the corresponding `unstable_useViewTransitionState` hook ([#11989](https://github.com/remix-run/react-router/pull/11989))
 
-## 6.16.1 (2017-02-23)
+### Patch Changes
 
-### :bug: Regression
+- Fix bug when submitting to the current contextual route (parent route with an index child) when an `?index` param already exists from a prior submission ([#12003](https://github.com/remix-run/react-router/pull/12003))
+- Fix `useFormAction` bug - when removing `?index` param it would not keep other non-Remix `index` params ([#12003](https://github.com/remix-run/react-router/pull/12003))
+- Fix bug with fetchers not persisting `preventScrollReset` through redirects during concurrent fetches ([#11999](https://github.com/remix-run/react-router/pull/11999))
+- Remove internal cache to fix issues with interrupted `patchRoutesOnNavigation` calls ([#12055](https://github.com/remix-run/react-router/pull/12055))
+  - We used to cache in-progress calls to `patchRoutesOnNavigation` internally so that multiple navigations with the same start/end would only execute the function once and use the same promise
+  - However, this approach was at odds with `patch` short circuiting if a navigation was interrupted (and the `request.signal` aborted) since the first invocation's `patch` would no-op
+  - This cache also made some assumptions as to what a valid cache key might be - and is oblivious to any other application-state changes that may have occurred
+  - So, the cache has been removed because in _most_ cases, repeated calls to something like `import()` for async routes will already be cached automatically - and if not it's easy enough for users to implement this cache in userland
+- Avoid unnecessary `console.error` on fetcher abort due to back-to-back revalidation calls ([#12050](https://github.com/remix-run/react-router/pull/12050))
+- Expose errors thrown from `patchRoutesOnNavigation` directly to `useRouteError` instead of wrapping them in a 400 `ErrorResponse` instance ([#12111](https://github.com/remix-run/react-router/pull/12111))
+- Fix types for `RouteObject` within `PatchRoutesOnNavigationFunction`'s `patch` method so it doesn't expect agnostic route objects passed to `patch` ([#11967](https://github.com/remix-run/react-router/pull/11967))
+- Fix bugs with `partialHydration` when hydrating with errors ([#12070](https://github.com/remix-run/react-router/pull/12070))
+- Remove internal `discoveredRoutes` FIFO queue from `unstable_patchRoutesOnNavigation` ([#11977](https://github.com/remix-run/react-router/pull/11977))
 
-- Revert "Fix export default async function to be FunctionDeclaration" ([#375](https://github.com/babel/babylon/pull/375))
+## 1.19.2
 
-Need to modify Babel for this AST node change, so moving to 7.0.
+### Patch Changes
 
-- Revert "Don't parse class properties without initializers when classProperties plugin is disabled, and Flow is enabled" ([#376](https://github.com/babel/babylon/pull/376))
+- Update the `unstable_dataStrategy` API to allow for more advanced implementations ([#11943](https://github.com/remix-run/react-router/pull/11943))
+  - Rename `unstable_HandlerResult` to `unstable_DataStrategyResult`
+  - The return signature has changed from a parallel array of `unstable_DataStrategyResult[]` (parallel to `matches`) to a key/value object of `routeId => unstable_DataStrategyResult`
+    - This allows you to more easily decide to opt-into or out-of revalidating data that may not have been revalidated by default (via `match.shouldLoad`)
+    - ⚠️ This is a breaking change if you've currently adopted `unstable_dataStrategy`
+  - Added a new `fetcherKey` parameter to `unstable_dataStrategy` to allow differentiation from navigational and fetcher calls
+  - You should now return/throw a result from your `handlerOverride` instead of returning a `DataStrategyResult`
+    - If you are aggregating the results of `match.resolve()` into a final results object you should not need to think about the `DataStrategyResult` type
+    - If you are manually filling your results object from within your `handlerOverride`, then you will need to assign a `DataStrategyResult` as the value so React Router knows if it's a successful execution or an error.
+- Preserve view transition through redirects ([#11925](https://github.com/remix-run/react-router/pull/11925))
+- Fix blocker usage when `blocker.proceed` is called quickly/synchronously ([#11930](https://github.com/remix-run/react-router/pull/11930))
+- Preserve pending view transitions through a router revalidation call ([#11917](https://github.com/remix-run/react-router/pull/11917))
 
-[react-native](https://github.com/facebook/react-native/issues/12542) broke with this so we reverted.
+## 1.19.1
 
-## 6.16.0 (2017-02-23)
+### Patch Changes
 
-### :rocket: New Feature
+- Fog of War: Update `unstable_patchRoutesOnMiss` logic so that we call the method when we match routes with dynamic param or splat segments in case there exists a higher-scoring static route that we've not yet discovered. ([#11883](https://github.com/remix-run/react-router/pull/11883))
 
-***ESTree*** compatibility as plugin ([#277](https://github.com/babel/babylon/pull/277)) (Daniel Tschinder)
+  - We also now leverage an internal FIFO queue of previous paths we've already called `unstable_patchRouteOnMiss` against so that we don't re-call on subsequent navigations to the same path
 
-We finally introduce a new compatibility layer for ESTree. To put babylon into ESTree-compatible mode the new plugin `estree` can be enabled. In this mode the parser will output an AST that is compliant to the specs of [ESTree](https://github.com/estree/estree/)
+- Rename `unstable_patchRoutesOnMiss` to `unstable_patchRoutesOnNavigation` to match new behavior ([#11888](https://github.com/remix-run/react-router/pull/11888))
 
-We highly recommend everyone who uses babylon outside of babel to use this plugin. This will make it much easier for users to switch between different ESTree-compatible parsers. We so far tested several projects with different parsers and exchanged their parser to babylon and in nearly all cases it worked out of the box. Some other estree-compatible parsers include `acorn`, `esprima`, `espree`, `flow-parser`, etc.
+## 1.19.0
 
-To enable `estree` mode simply add the plugin in the config:
-```json
-{
-  "plugins": [ "estree" ]
-}
-```
+### Minor Changes
 
-If you want to migrate your project from non-ESTree mode to ESTree, have a look at our [Readme](https://github.com/babel/babylon/#output), where all deviations are mentioned.
+- Add a new `replace(url, init?)` alternative to `redirect(url, init?)` that performs a `history.replaceState` instead of a `history.pushState` on client-side navigation redirects ([#11811](https://github.com/remix-run/react-router/pull/11811))
+- Add a new `unstable_data()` API for usage with Remix Single Fetch ([#11836](https://github.com/remix-run/react-router/pull/11836))
+  - This API is not intended for direct usage in React Router SPA applications
+  - It is primarily intended for usage with `createStaticHandler.query()` to allow loaders/actions to return arbitrary data + `status`/`headers` without forcing the serialization of data into a `Response` instance
+  - This allows for more advanced serialization tactics via `unstable_dataStrategy` such as serializing via `turbo-stream` in Remix Single Fetch
+  - ⚠️ This removes the `status` field from `HandlerResult`
+    - If you need to return a specific `status` from `unstable_dataStrategy` you should instead do so via `unstable_data()`
 
-Add a parseExpression public method ([#213](https://github.com/babel/babylon/pull/213)) (jeromew)
+### Patch Changes
 
-Babylon exports a new function to parse a single expression
+- Fix internal cleanup of interrupted fetchers to avoid invalid revalidations on navigations ([#11839](https://github.com/remix-run/react-router/pull/11839))
+  - When a `fetcher.load` is interrupted by an `action` submission, we track it internally and force revalidation once the `action` completes
+  - We previously only cleared out this internal tracking info on a successful _navigation_ submission
+  - Therefore, if the `fetcher.load` was interrupted by a `fetcher.submit`, then we wouldn't remove it from this internal tracking info on successful load (incorrectly)
+  - And then on the next navigation it's presence in the internal tracking would automatically trigger execution of the `fetcher.load` again, ignoring any `shouldRevalidate` logic
+  - This fix cleans up the internal tracking so it applies to both navigation submission and fetcher submissions
+- Fix initial hydration behavior when using `future.v7_partialHydration` along with `unstable_patchRoutesOnMiss` ([#11838](https://github.com/remix-run/react-router/pull/11838))
+  - During initial hydration, `router.state.matches` will now include any partial matches so that we can render ancestor `HydrateFallback` components
 
-```js
-import { parseExpression } from 'babylon';
+## 1.18.0
 
-const ast = parseExpression('x || y && z', options);
-```
+### Minor Changes
 
-The returned AST will only consist of the expression. The options are the same as for `parse()`
+- Stabilize `future.unstable_skipActionErrorRevalidation` as `future.v7_skipActionErrorRevalidation` ([#11769](https://github.com/remix-run/react-router/pull/11769))
+  - When this flag is enabled, actions will not automatically trigger a revalidation if they return/throw a `Response` with a `4xx`/`5xx` status code
+  - You may still opt-into revalidation via `shouldRevalidate`
+  - This also changes `shouldRevalidate`'s `unstable_actionStatus` parameter to `actionStatus`
 
-Add startLine option ([#346](https://github.com/babel/babylon/pull/346)) (Raphael Mu)
+### Patch Changes
 
-A new option was added to babylon allowing to change the initial linenumber for the first line which is usually `1`.
-Changing this for example to `100` will make line `1` of the input source to be marked as line `100`, line `2` as `101`, line `3` as `102`, ...
+- Fix bubbling of errors thrown from `unstable_patchRoutesOnMiss` ([#11786](https://github.com/remix-run/react-router/pull/11786))
+- Fix hydration in SSR apps using `unstable_patchRoutesOnMiss` that matched a splat route on the server ([#11790](https://github.com/remix-run/react-router/pull/11790))
 
-Function predicate declaration ([#103](https://github.com/babel/babylon/pull/103)) (Panagiotis Vekris)
+## 1.17.1
 
-Added support for function predicates which flow introduced in version 0.33.0
+### Patch Changes
 
-```js
-declare function is_number(x: mixed): boolean %checks(typeof x === "number");
-```
+- Fog of War (unstable): Trigger a new `router.routes` identity/reflow during route patching ([#11740](https://github.com/remix-run/react-router/pull/11740))
+- Fog of War (unstable): Fix initial matching when a splat route matches ([#11759](https://github.com/remix-run/react-router/pull/11759))
 
-Allow imports in declare module ([#315](https://github.com/babel/babylon/pull/315)) (Daniel Tschinder)
+## 1.17.0
 
-Added support for imports within module declarations which flow introduced in version 0.37.0
+### Minor Changes
 
-```js
-declare module "C" {
-  import type { DT } from "D";
-  declare export type CT = { D: DT };
-}
-```
+- Add support for Lazy Route Discovery (a.k.a. Fog of War) ([#11626](https://github.com/remix-run/react-router/pull/11626))
 
-### :eyeglasses: Spec Compliance
+  - RFC: <https://github.com/remix-run/react-router/discussions/11113>
+  - `unstable_patchRoutesOnMiss` docs: <https://reactrouter.com/v6/routers/create-browser-router>
 
-Forbid semicolons after decorators in classes ([#352](https://github.com/babel/babylon/pull/352)) (Kevin Gibbons)
+## 1.16.1
 
-This example now correctly throws an error when there is a semicolon after the decorator:
+### Patch Changes
 
-```js
-class A {
-@a;
-foo(){}
-}
-```
+- Support `unstable_dataStrategy` on `staticHandler.queryRoute` ([#11515](https://github.com/remix-run/react-router/pull/11515))
 
-Keywords are not allowed as local specifier ([#307](https://github.com/babel/babylon/pull/307)) (Daniel Tschinder)
+## 1.16.0
 
-Using keywords in imports is not allowed anymore:
+### Minor Changes
 
-```js
-import { default } from "foo";
-import { a as debugger } from "foo";
-```
+- Add a new `unstable_dataStrategy` configuration option ([#11098](https://github.com/remix-run/react-router/pull/11098))
+  - This option allows Data Router applications to take control over the approach for executing route loaders and actions
+  - The default implementation is today's behavior, to fetch all loaders in parallel, but this option allows users to implement more advanced data flows including Remix single-fetch, middleware/context APIs, automatic loader caching, and more
+- Move `unstable_dataStrategy` from `createStaticHandler` to `staticHandler.query` so it can be request-specific for use with the `ResponseStub` approach in Remix. It's not really applicable to `queryRoute` for now since that's a singular handler call anyway so any pre-processing/post/processing could be done there manually. ([#11377](https://github.com/remix-run/react-router/pull/11377))
+- Add a new `future.unstable_skipActionRevalidation` future flag ([#11098](https://github.com/remix-run/react-router/pull/11098))
+  - Currently, active loaders revalidate after any action, regardless of the result
+  - With this flag enabled, actions that return/throw a 4xx/5xx response status will no longer automatically revalidate
+  - This should reduce load on your server since it's rare that a 4xx/5xx should actually mutate any data
+  - If you need to revalidate after a 4xx/5xx result with this flag enabled, you can still do that via returning `true` from `shouldRevalidate`
+  - `shouldRevalidate` now also receives a new `unstable_actionStatus` argument alongside `actionResult` so you can make decision based on the status of the `action` response without having to encode it into the action data
+- Added a `skipLoaderErrorBubbling` flag to `staticHandler.query` to disable error bubbling on loader executions for single-fetch scenarios where the client-side router will handle the bubbling ([#11098](https://github.com/remix-run/react-router/pull/11098))
 
-Do not allow overwritting of primitive types ([#314](https://github.com/babel/babylon/pull/314)) (Daniel Tschinder)
+## 1.15.3
 
-In flow it is now forbidden to overwrite the primitive types `"any"`, `"mixed"`, `"empty"`, `"bool"`, `"boolean"`, `"number"`, `"string"`, `"void"` and `"null"` with your own type declaration.
+### Patch Changes
 
-Disallow import type { type a } from … ([#305](https://github.com/babel/babylon/pull/305)) (Daniel Tschinder)
+- Fix a `future.v7_partialHydration` bug that would re-run loaders below the boundary on hydration if SSR loader errors bubbled to a parent boundary ([#11324](https://github.com/remix-run/react-router/pull/11324))
+- Fix a `future.v7_partialHydration` bug that would consider the router uninitialized if a route did not have a loader ([#11325](https://github.com/remix-run/react-router/pull/11325))
 
-The following code now correctly throws an error
+## 1.15.2
 
-```js
-import type { type a } from "foo";
-```
+### Patch Changes
 
-Don't parse class properties without initializers when classProperties is disabled and Flow is enabled ([#300](https://github.com/babel/babylon/pull/300)) (Andrew Levine)
+- Preserve hydrated errors during partial hydration runs ([#11305](https://github.com/remix-run/react-router/pull/11305))
 
-Ensure that you enable the `classProperties` plugin in order to enable correct parsing of class properties. Prior to this version it was possible to parse them by enabling the `flow` plugin but this was not intended the behaviour.
+## 1.15.1
 
-If you enable the flow plugin you can only define the type of the class properties, but not initialize them.
+### Patch Changes
 
-Fix export default async function to be FunctionDeclaration ([#324](https://github.com/babel/babylon/pull/324)) (Daniel Tschinder)
+- Fix encoding/decoding issues with pre-encoded dynamic parameter values ([#11199](https://github.com/remix-run/react-router/pull/11199))
 
-Parsing the following code now returns a `FunctionDeclaration` AST node instead of `FunctionExpression`.
+## 1.15.0
 
-```js
-export default async function bar() {};
-```
+### Minor Changes
 
-### :nail_care: Polish
+- Add a `createStaticHandler` `future.v7_throwAbortReason` flag to throw `request.signal.reason` (defaults to a `DOMException`) when a request is aborted instead of an `Error` such as `new Error("query() call aborted: GET /path")` ([#11104](https://github.com/remix-run/react-router/pull/11104))
 
-Improve error message on attempt to destructure named import ([#288](https://github.com/babel/babylon/pull/288)) (Brian Ng)
+  - Please note that `DOMException` was added in Node v17 so you will not get a `DOMException` on Node 16 and below.
 
-### :bug: Bug Fix
+### Patch Changes
 
-Fix negative number literal typeannotations ([#366](https://github.com/babel/babylon/pull/366)) (Daniel Tschinder)
+- Respect the `ErrorResponse` status code if passed to `getStaticContextFormError` ([#11213](https://github.com/remix-run/react-router/pull/11213))
 
-Ensure takeDecorators is called on exported class ([#358](https://github.com/babel/babylon/pull/358)) (Brian Ng)
+## 1.14.2
 
-ESTree: correctly change literals in all cases ([#368](https://github.com/babel/babylon/pull/368)) (Daniel Tschinder)
+### Patch Changes
 
-Correctly convert RestProperty to Assignable ([#339](https://github.com/babel/babylon/pull/339)) (Daniel Tschinder)
+- Fix bug where dashes were not picked up in dynamic parameter names ([#11160](https://github.com/remix-run/react-router/pull/11160))
+- Do not attempt to deserialize empty JSON responses ([#11164](https://github.com/remix-run/react-router/pull/11164))
 
-Fix #321 by allowing question marks in type params ([#338](https://github.com/babel/babylon/pull/338)) (Daniel Tschinder)
+## 1.14.1
 
-Fix #336 by correctly setting arrow-param ([#337](https://github.com/babel/babylon/pull/337)) (Daniel Tschinder)
+### Patch Changes
 
-Fix parse error when destructuring `set` with default value ([#317](https://github.com/babel/babylon/pull/317)) (Brian Ng)
+- Fix bug with `route.lazy` not working correctly on initial SPA load when `v7_partialHydration` is specified ([#11121](https://github.com/remix-run/react-router/pull/11121))
+- Fix bug preventing revalidation from occurring for persisted fetchers unmounted during the `submitting` phase ([#11102](https://github.com/remix-run/react-router/pull/11102))
+- De-dup relative path logic in `resolveTo` ([#11097](https://github.com/remix-run/react-router/pull/11097))
 
-Fix ObjectTypeCallProperty static ([#298](https://github.com/babel/babylon/pull/298)) (Dan Harper)
+## 1.14.0
 
+### Minor Changes
 
-### :house: Internal
+- Added a new `future.v7_partialHydration` future flag that enables partial hydration of a data router when Server-Side Rendering. This allows you to provide `hydrationData.loaderData` that has values for _some_ initially matched route loaders, but not all. When this flag is enabled, the router will call `loader` functions for routes that do not have hydration loader data during `router.initialize()`, and it will render down to the deepest provided `HydrateFallback` (up to the first route without hydration data) while it executes the unhydrated routes. ([#11033](https://github.com/remix-run/react-router/pull/11033))
 
-Fix generator-method-with-computed-name spec ([#360](https://github.com/babel/babylon/pull/360)) (Alex Rattray)
+  For example, the following router has a `root` and `index` route, but only provided `hydrationData.loaderData` for the `root` route. Because the `index` route has a `loader`, we need to run that during initialization. With `future.v7_partialHydration` specified, `<RouterProvider>` will render the `RootComponent` (because it has data) and then the `IndexFallback` (since it does not have data). Once `indexLoader` finishes, application will update and display `IndexComponent`.
 
-Fix flow type-parameter-declaration test with unintended semantic ([#361](https://github.com/babel/babylon/pull/361)) (Alex Rattray)
+  ```jsx
+  let router = createBrowserRouter(
+    [
+      {
+        id: "root",
+        path: "/",
+        loader: rootLoader,
+        Component: RootComponent,
+        Fallback: RootFallback,
+        children: [
+          {
+            id: "index",
+            index: true,
+            loader: indexLoader,
+            Component: IndexComponent,
+            HydrateFallback: IndexFallback,
+          },
+        ],
+      },
+    ],
+    {
+      future: {
+        v7_partialHydration: true,
+      },
+      hydrationData: {
+        loaderData: {
+          root: { message: "Hydrated from Root!" },
+        },
+      },
+    }
+  );
+  ```
 
-Cleanup and splitup parser functions ([#295](https://github.com/babel/babylon/pull/295)) (Daniel Tschinder)
+  If the above example did not have an `IndexFallback`, then `RouterProvider` would instead render the `RootFallback` while it executed the `indexLoader`.
 
-chore(package): update flow-bin to version 0.38.0 ([#313](https://github.com/babel/babylon/pull/313)) (greenkeeper[bot])
+  **Note:** When `future.v7_partialHydration` is provided, the `<RouterProvider fallbackElement>` prop is ignored since you can move it to a `Fallback` on your top-most route. The `fallbackElement` prop will be removed in React Router v7 when `v7_partialHydration` behavior becomes the standard behavior.
 
-Call inner function instead of 1:1 copy to plugin ([#294](https://github.com/babel/babylon/pull/294)) (Daniel Tschinder)
+- Add a new `future.v7_relativeSplatPath` flag to implement a breaking bug fix to relative routing when inside a splat route. ([#11087](https://github.com/remix-run/react-router/pull/11087))
 
-Update eslint-config-babel to the latest version 🚀 ([#299](https://github.com/babel/babylon/pull/299)) (greenkeeper[bot])
+  This fix was originally added in [#10983](https://github.com/remix-run/react-router/issues/10983) and was later reverted in [#11078](https://github.com/remix-run/react-router/pull/11078) because it was determined that a large number of existing applications were relying on the buggy behavior (see [#11052](https://github.com/remix-run/react-router/issues/11052))
 
-Update eslint-config-babel to the latest version 🚀 ([#293](https://github.com/babel/babylon/pull/293)) (greenkeeper[bot])
+  **The Bug**
+  The buggy behavior is that without this flag, the default behavior when resolving relative paths is to _ignore_ any splat (`*`) portion of the current route path.
 
-devDeps: remove eslint-plugin-babel ([#292](https://github.com/babel/babylon/pull/292)) (Kai Cataldo)
+  **The Background**
+  This decision was originally made thinking that it would make the concept of nested different sections of your apps in `<Routes>` easier if relative routing would _replace_ the current splat:
 
-Correct indent eslint rule config ([#276](https://github.com/babel/babylon/pull/276)) (Daniel Tschinder)
+  ```jsx
+  <BrowserRouter>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="dashboard/*" element={<Dashboard />} />
+    </Routes>
+  </BrowserRouter>
+  ```
 
-Fail tests that have expected.json and throws-option ([#285](https://github.com/babel/babylon/pull/285)) (Daniel Tschinder)
+  Any paths like `/dashboard`, `/dashboard/team`, `/dashboard/projects` will match the `Dashboard` route. The dashboard component itself can then render nested `<Routes>`:
 
-### :memo: Documentation
+  ```jsx
+  function Dashboard() {
+    return (
+      <div>
+        <h2>Dashboard</h2>
+        <nav>
+          <Link to="/">Dashboard Home</Link>
+          <Link to="team">Team</Link>
+          <Link to="projects">Projects</Link>
+        </nav>
 
-Update contributing with more test info [skip ci] ([#355](https://github.com/babel/babylon/pull/355)) (Brian Ng)
-
-Update API documentation ([#330](https://github.com/babel/babylon/pull/330)) (Timothy Gu)
-
-Added keywords to package.json ([#323](https://github.com/babel/babylon/pull/323)) (Dmytro)
-
-AST spec: fix casing of `RegExpLiteral` ([#318](https://github.com/babel/babylon/pull/318)) (Mathias Bynens)
-
-## 6.15.0 (2017-01-10)
-
-### :eyeglasses: Spec Compliance
-
-Add support for Flow shorthand import type ([#267](https://github.com/babel/babylon/pull/267)) (Jeff Morrison)
-
-This change implements flows new shorthand import syntax
-and where previously you had to write this code:
-
-```js
-import {someValue} from "blah";
-import type {someType} from "blah";
-import typeof {someOtherValue} from "blah";
-```
-
-you can now write it like this:
-
-```js
-import {
-  someValue,
-  type someType,
-  typeof someOtherValue,
-} from "blah";
-```
-
-For more information look at [this](https://github.com/facebook/flow/pull/2890) pull request.
-
-flow: allow leading pipes in all positions ([#256](https://github.com/babel/babylon/pull/256)) (Vladimir Kurchatkin)
-
-This change now allows a leading pipe everywhere types can be used:
-```js
-var f = (x): | 1 | 2 => 1;
-```
-
-Throw error when exporting non-declaration ([#241](https://github.com/babel/babylon/pull/241)) (Kai Cataldo)
-
-Previously babylon parsed the following exports, although they are not valid:
-```js
-export typeof foo;
-export new Foo();
-export function() {};
-export for (;;);
-export while(foo);
-```
-
-### :bug: Bug Fix
-
-Don't set inType flag when parsing property names ([#266](https://github.com/babel/babylon/pull/266)) (Vladimir Kurchatkin)
-
-This fixes parsing of this case:
-
-```js
-const map = {
-  [age <= 17] : 'Too young'
-};
-```
-
-Fix source location for JSXEmptyExpression nodes (fixes #248) ([#249](https://github.com/babel/babylon/pull/249)) (James Long)
-
-The following case produced an invalid AST
-```js
-<div>{/* foo */}</div>
-```
-
-Use fromCodePoint to convert high value unicode entities ([#243](https://github.com/babel/babylon/pull/243)) (Ryan Duffy)
-
-When high value unicode entities (e.g. 💩) were used in the input source code they are now correctly encoded in the resulting AST.
-
-Rename folder to avoid Windows-illegal characters ([#281](https://github.com/babel/babylon/pull/281)) (Ryan Plant)
-
-Allow this.state.clone() when parsing decorators ([#262](https://github.com/babel/babylon/pull/262)) (Alex Rattray)
-
-### :house: Internal
-
-User external-helpers ([#254](https://github.com/babel/babylon/pull/254)) (Daniel Tschinder)
-
-Add watch script for dev ([#234](https://github.com/babel/babylon/pull/234)) (Kai Cataldo)
-
-Freeze current plugins list for "*" option, and remove from README.md ([#245](https://github.com/babel/babylon/pull/245)) (Andrew Levine)
-
-Prepare tests for multiple fixture runners. ([#240](https://github.com/babel/babylon/pull/240)) (Daniel Tschinder)
-
-Add some test coverage for decorators stage-0 plugin ([#250](https://github.com/babel/babylon/pull/250)) (Andrew Levine)
-
-Refactor tokenizer types file ([#263](https://github.com/babel/babylon/pull/263)) (Sven SAULEAU)
-
-Update eslint-config-babel to the latest version 🚀 ([#273](https://github.com/babel/babylon/pull/273)) (greenkeeper[bot])
-
-chore(package): update rollup to version 0.41.0 ([#272](https://github.com/babel/babylon/pull/272)) (greenkeeper[bot])
-
-chore(package): update flow-bin to version 0.37.0 ([#255](https://github.com/babel/babylon/pull/255)) (greenkeeper[bot])
-
-## 6.14.1 (2016-11-17)
-
-### :bug: Bug Fix
-
-Allow `"plugins": ["*"]` ([#229](https://github.com/babel/babylon/pull/229)) (Daniel Tschinder)
-
-```js
-{
-  "plugins": ["*"]
-}
-```
-
-Will include all parser plugins instead of specifying each one individually. Useful for tools like babel-eslint, jscodeshift, and ast-explorer.
-
-## 6.14.0 (2016-11-16)
-
-### :eyeglasses: Spec Compliance
-
-Throw error for reserved words `enum` and `await` ([#195](https://github.com/babel/babylon/pull/195)) (Kai Cataldo)
-
-[11.6.2.2 Future Reserved Words](http://www.ecma-international.org/ecma-262/6.0/#sec-future-reserved-words)
-
-Babylon will throw for more reserved words such as `enum` or `await` (in strict mode).
-
-```
-class enum {} // throws
-class await {} // throws in strict mode (module)
-```
-
-Optional names for function types and object type indexers ([#197](https://github.com/babel/babylon/pull/197)) (Gabe Levi)
-
-So where you used to have to write
-
-```js
-type A = (x: string, y: boolean) => number;
-type B = (z: string) => number;
-type C = { [key: string]: number };
-```
-
-you can now write (with flow 0.34.0)
-
-```js
-type A = (string, boolean) => number;
-type B = string => number;
-type C = { [string]: number };
-```
-
-Parse flow nested array type annotations like `number[][]` ([#219](https://github.com/babel/babylon/pull/219)) (Bernhard Häussner)
-
-Supports these form now of specifying array types:
-
-```js
-var a: number[][][][];
-var b: string[][];
-```
-
-### :bug: Bug Fix
-
-Correctly eat semicolon at the end of `DelcareModuleExports` ([#223](https://github.com/babel/babylon/pull/223))  (Daniel Tschinder)
-
-```
-declare module "foo" { declare module.exports: number }
-declare module "foo" { declare module.exports: number; }  // also allowed now
-```
-
-### :house: Internal
-
- * Count Babel tests towards Babylon code coverage ([#182](https://github.com/babel/babylon/pull/182)) (Moti Zilberman)
- * Fix strange line endings ([#214](https://github.com/babel/babylon/pull/214)) (Thomas Grainger)
- * Add node 7 (Daniel Tschinder)
- * chore(package): update flow-bin to version 0.34.0 ([#204](https://github.com/babel/babylon/pull/204)) (Greenkeeper)
-
-## v6.13.1 (2016-10-26)
-
-### :nail_care: Polish
-
-- Use rollup for bundling to speed up startup time ([#190](https://github.com/babel/babylon/pull/190)) ([@drewml](https://github.com/DrewML))
-
-```js
-const babylon = require('babylon');
-const ast = babylon.parse('var foo = "lol";');
-```
-
-With that test case, there was a ~95ms savings by removing the need for node to build/traverse the dependency graph.
-
-**Without bundling**
-![image](https://cloud.githubusercontent.com/assets/5233399/19420264/3133497e-93ad-11e6-9a6a-2da59c4f5c13.png)
-
-**With bundling**
-![image](https://cloud.githubusercontent.com/assets/5233399/19420267/388f556e-93ad-11e6-813e-7c5c396be322.png)
-
-- add clean command [skip ci] ([#201](https://github.com/babel/babylon/pull/201)) (Henry Zhu)
-- add ForAwaitStatement (async generator already added) [skip ci] ([#196](https://github.com/babel/babylon/pull/196)) (Henry Zhu)
-
-## v6.13.0 (2016-10-21)
-
-### :eyeglasses: Spec Compliance
-
-Property variance type annotations for Flow plugin ([#161](https://github.com/babel/babylon/pull/161)) (Sam Goldman)
-
-> See https://flowtype.org/docs/variance.html for more information
-
-```js
-type T = { +p: T };
-interface T { -p: T };
-declare class T { +[k:K]: V };
-class T { -[k:K]: V };
-class C2 { +p: T = e };
-```
-
-Raise error on duplicate definition of __proto__ ([#183](https://github.com/babel/babylon/pull/183)) (Moti Zilberman)
-
-```js
-({ __proto__: 1, __proto__: 2 }) // Throws an error now
-```
-
-### :bug: Bug Fix
-
-Flow: Allow class properties to be named `static` ([#184](https://github.com/babel/babylon/pull/184)) (Moti Zilberman)
-
-```js
-declare class A {
-  static: T;
-}
-```
-
-Allow "async" as identifier for object literal property shorthand ([#187](https://github.com/babel/babylon/pull/187)) (Andrew Levine)
-
-```js
-var foo = { async, bar };
-```
-
-### :nail_care: Polish
-
-Fix flowtype and add inType to state ([#189](https://github.com/babel/babylon/pull/189)) (Daniel Tschinder)
-
-> This improves the performance slightly (because of hidden classes)
-
-### :house: Internal
-
-Fix .gitattributes line ending setting ([#191](https://github.com/babel/babylon/pull/191)) (Moti Zilberman)
-
-Increase test coverage ([#175](https://github.com/babel/babylon/pull/175) (Moti Zilberman)
-
-Readd missin .eslinignore for IDEs (Daniel Tschinder)
-
-Error on missing expected.json fixture in CI ([#188](https://github.com/babel/babylon/pull/188)) (Moti Zilberman)
-
-Add .gitattributes and .editorconfig for LF line endings ([#179](https://github.com/babel/babylon/pull/179)) (Moti Zilberman)
-
-Fixes two tests that are failing after the merge of #172 ([#177](https://github.com/babel/babylon/pull/177)) (Moti Zilberman)
-
-## v6.12.0 (2016-10-14)
-
-### :eyeglasses: Spec Compliance
-
-Implement import() syntax ([#163](https://github.com/babel/babylon/pull/163)) (Jordan Gensler)
-
-#### Dynamic Import
-
-- Proposal Repo: https://github.com/domenic/proposal-dynamic-import
-- Championed by [@domenic](https://github.com/domenic)
-- stage-2
-- [sept-28 tc39 notes](https://github.com/rwaldron/tc39-notes/blob/master/es7/2016-09/sept-28.md#113a-import)
-
-> This repository contains a proposal for adding a "function-like" import() module loading syntactic form to JavaScript
-
-```js
-import(`./section-modules/${link.dataset.entryModule}.js`)
-.then(module => {
-  module.loadPageInto(main);
-})
-```
-
-Add EmptyTypeAnnotation ([#171](https://github.com/babel/babylon/pull/171)) (Sam Goldman)
-
-#### EmptyTypeAnnotation
-
-Just wasn't covered before.
-
-```js
-type T = empty;
-```
-
-### :bug: Bug Fix
-
-Fix crash when exporting with destructuring and sparse array ([#170](https://github.com/babel/babylon/pull/170)) (Jeroen Engels)
-
-```js
-// was failing due to sparse array
-export const { foo: [ ,, qux7 ] } = bar;
-```
-
-Allow keyword in Flow object declaration property names with type parameters ([#146](https://github.com/babel/babylon/pull/146)) (Dan Harper)
-
-```js
-declare class X {
-  foobar<T>(): void;
-  static foobar<T>(): void;
-}
-```
-
-Allow keyword in object/class property names with Flow type parameters ([#145](https://github.com/babel/babylon/pull/145)) (Dan Harper)
-
-```js
-class Foo {
-  delete<T>(item: T): T {
-    return item;
+        <Routes>
+          <Route path="/" element={<DashboardHome />} />
+          <Route path="team" element={<DashboardTeam />} />
+          <Route path="projects" element={<DashboardProjects />} />
+        </Routes>
+      </div>
+    );
   }
+  ```
+
+  Now, all links and route paths are relative to the router above them. This makes code splitting and compartmentalizing your app really easy. You could render the `Dashboard` as its own independent app, or embed it into your large app without making any changes to it.
+
+  **The Problem**
+
+  The problem is that this concept of ignoring part of a path breaks a lot of other assumptions in React Router - namely that `"."` always means the current location pathname for that route. When we ignore the splat portion, we start getting invalid paths when using `"."`:
+
+  ```jsx
+  // If we are on URL /dashboard/team, and we want to link to /dashboard/team:
+  function DashboardTeam() {
+    // ❌ This is broken and results in <a href="/dashboard">
+    return <Link to=".">A broken link to the Current URL</Link>;
+
+    // ✅ This is fixed but super unintuitive since we're already at /dashboard/team!
+    return <Link to="./team">A broken link to the Current URL</Link>;
+  }
+  ```
+
+  We've also introduced an issue that we can no longer move our `DashboardTeam` component around our route hierarchy easily - since it behaves differently if we're underneath a non-splat route, such as `/dashboard/:widget`. Now, our `"."` links will, properly point to ourself _inclusive of the dynamic param value_ so behavior will break from it's corresponding usage in a `/dashboard/*` route.
+
+  Even worse, consider a nested splat route configuration:
+
+  ```jsx
+  <BrowserRouter>
+    <Routes>
+      <Route path="dashboard">
+        <Route path="*" element={<Dashboard />} />
+      </Route>
+    </Routes>
+  </BrowserRouter>
+  ```
+
+  Now, a `<Link to=".">` and a `<Link to="..">` inside the `Dashboard` component go to the same place! That is definitely not correct!
+
+  Another common issue arose in Data Routers (and Remix) where any `<Form>` should post to it's own route `action` if you the user doesn't specify a form action:
+
+  ```jsx
+  let router = createBrowserRouter({
+    path: "/dashboard",
+    children: [
+      {
+        path: "*",
+        action: dashboardAction,
+        Component() {
+          // ❌ This form is broken!  It throws a 405 error when it submits because
+          // it tries to submit to /dashboard (without the splat value) and the parent
+          // `/dashboard` route doesn't have an action
+          return <Form method="post">...</Form>;
+        },
+      },
+    ],
+  });
+  ```
+
+  This is just a compounded issue from the above because the default location for a `Form` to submit to is itself (`"."`) - and if we ignore the splat portion, that now resolves to the parent route.
+
+  **The Solution**
+  If you are leveraging this behavior, it's recommended to enable the future flag, move your splat to it's own route, and leverage `../` for any links to "sibling" pages:
+
+  ```jsx
+  <BrowserRouter>
+    <Routes>
+      <Route path="dashboard">
+        <Route index path="*" element={<Dashboard />} />
+      </Route>
+    </Routes>
+  </BrowserRouter>
+
+  function Dashboard() {
+    return (
+      <div>
+        <h2>Dashboard</h2>
+        <nav>
+          <Link to="..">Dashboard Home</Link>
+          <Link to="../team">Team</Link>
+          <Link to="../projects">Projects</Link>
+        </nav>
+
+        <Routes>
+          <Route path="/" element={<DashboardHome />} />
+          <Route path="team" element={<DashboardTeam />} />
+          <Route path="projects" element={<DashboardProjects />} />
+        </Router>
+      </div>
+    );
+  }
+  ```
+
+  This way, `.` means "the full current pathname for my route" in all cases (including static, dynamic, and splat routes) and `..` always means "my parents pathname".
+
+### Patch Changes
+
+- Catch and bubble errors thrown when trying to unwrap responses from `loader`/`action` functions ([#11061](https://github.com/remix-run/react-router/pull/11061))
+- Fix `relative="path"` issue when rendering `Link`/`NavLink` outside of matched routes ([#11062](https://github.com/remix-run/react-router/pull/11062))
+
+## 1.13.1
+
+### Patch Changes
+
+- Revert the `useResolvedPath` fix for splat routes due to a large number of applications that were relying on the buggy behavior (see <https://github.com/remix-run/react-router/issues/11052#issuecomment-1836589329>). We plan to re-introduce this fix behind a future flag in the next minor version. ([#11078](https://github.com/remix-run/react-router/pull/11078))
+
+## 1.13.0
+
+### Minor Changes
+
+- Export the `PathParam` type from the public API ([#10719](https://github.com/remix-run/react-router/pull/10719))
+
+### Patch Changes
+
+- Fix bug with `resolveTo` in splat routes ([#11045](https://github.com/remix-run/react-router/pull/11045))
+  - This is a follow up to [#10983](https://github.com/remix-run/react-router/pull/10983) to handle the few other code paths using `getPathContributingMatches`
+  - This removes the `UNSAFE_getPathContributingMatches` export from `@remix-run/router` since we no longer need this in the `react-router`/`react-router-dom` layers
+- Do not revalidate unmounted fetchers when `v7_fetcherPersist` is enabled ([#11044](https://github.com/remix-run/react-router/pull/11044))
+
+## 1.12.0
+
+### Minor Changes
+
+- Add `unstable_flushSync` option to `router.navigate` and `router.fetch` to tell the React Router layer to opt-out of `React.startTransition` and into `ReactDOM.flushSync` for state updates ([#11005](https://github.com/remix-run/react-router/pull/11005))
+
+### Patch Changes
+
+- Fix `relative="path"` bug where relative path calculations started from the full location pathname, instead of from the current contextual route pathname. ([#11006](https://github.com/remix-run/react-router/pull/11006))
+
+  ```jsx
+  <Route path="/a">
+    <Route path="/b" element={<Component />}>
+      <Route path="/c" />
+    </Route>
+  </Route>;
+
+  function Component() {
+    return (
+      <>
+        {/* This is now correctly relative to /a/b, not /a/b/c */}
+        <Link to=".." relative="path" />
+        <Outlet />
+      </>
+    );
+  }
+  ```
+
+## 1.11.0
+
+### Minor Changes
+
+- Add a new `future.v7_fetcherPersist` flag to the `@remix-run/router` to change the persistence behavior of fetchers when `router.deleteFetcher` is called. Instead of being immediately cleaned up, fetchers will persist until they return to an `idle` state ([RFC](https://github.com/remix-run/remix/discussions/7698)) ([#10962](https://github.com/remix-run/react-router/pull/10962))
+
+  - This is sort of a long-standing bug fix as the `useFetchers()` API was always supposed to only reflect **in-flight** fetcher information for pending/optimistic UI -- it was not intended to reflect fetcher data or hang onto fetchers after they returned to an `idle` state
+  - Keep an eye out for the following specific behavioral changes when opting into this flag and check your app for compatibility:
+    - Fetchers that complete _while still mounted_ will no longer appear in `useFetchers()`. They served effectively no purpose in there since you can access the data via `useFetcher().data`).
+    - Fetchers that previously unmounted _while in-flight_ will not be immediately aborted and will instead be cleaned up once they return to an `idle` state. They will remain exposed via `useFetchers` while in-flight so you can still access pending/optimistic data after unmount.
+
+- When `v7_fetcherPersist` is enabled, the router now performs ref-counting on fetcher keys via `getFetcher`/`deleteFetcher` so it knows when a given fetcher is totally unmounted from the UI ([#10977](https://github.com/remix-run/react-router/pull/10977))
+
+  - Once a fetcher has been totally unmounted, we can ignore post-processing of a persisted fetcher result such as a redirect or an error
+  - The router will also pass a new `deletedFetchers` array to the subscriber callbacks so that the UI layer can remove associated fetcher data
+
+- Add support for optional path segments in `matchPath` ([#10768](https://github.com/remix-run/react-router/pull/10768))
+
+### Patch Changes
+
+- Fix `router.getFetcher`/`router.deleteFetcher` type definitions which incorrectly specified `key` as an optional parameter ([#10960](https://github.com/remix-run/react-router/pull/10960))
+
+## 1.10.0
+
+### Minor Changes
+
+- Add experimental support for the [View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/ViewTransition) by allowing users to opt-into view transitions on navigations via the new `unstable_viewTransition` option to `router.navigate` ([#10916](https://github.com/remix-run/react-router/pull/10916))
+
+### Patch Changes
+
+- Allow 404 detection to leverage root route error boundary if path contains a URL segment ([#10852](https://github.com/remix-run/react-router/pull/10852))
+- Fix `ErrorResponse` type to avoid leaking internal field ([#10876](https://github.com/remix-run/react-router/pull/10876))
+
+## 1.9.0
+
+### Minor Changes
+
+- In order to move towards stricter TypeScript support in the future, we're aiming to replace current usages of `any` with `unknown` on exposed typings for user-provided data. To do this in Remix v2 without introducing breaking changes in React Router v6, we have added generics to a number of shared types. These continue to default to `any` in React Router and are overridden with `unknown` in Remix. In React Router v7 we plan to move these to `unknown` as a breaking change. ([#10843](https://github.com/remix-run/react-router/pull/10843))
+  - `Location` now accepts a generic for the `location.state` value
+  - `ActionFunctionArgs`/`ActionFunction`/`LoaderFunctionArgs`/`LoaderFunction` now accept a generic for the `context` parameter (only used in SSR usages via `createStaticHandler`)
+  - The return type of `useMatches` (now exported as `UIMatch`) accepts generics for `match.data` and `match.handle` - both of which were already set to `unknown`
+- Move the `@private` class export `ErrorResponse` to an `UNSAFE_ErrorResponseImpl` export since it is an implementation detail and there should be no construction of `ErrorResponse` instances in userland. This frees us up to export a `type ErrorResponse` which correlates to an instance of the class via `InstanceType`. Userland code should only ever be using `ErrorResponse` as a type and should be type-narrowing via `isRouteErrorResponse`. ([#10811](https://github.com/remix-run/react-router/pull/10811))
+- Export `ShouldRevalidateFunctionArgs` interface ([#10797](https://github.com/remix-run/react-router/pull/10797))
+- Removed private/internal APIs only required for the Remix v1 backwards compatibility layer and no longer needed in Remix v2 (`_isFetchActionRedirect`, `_hasFetcherDoneAnything`) ([#10715](https://github.com/remix-run/react-router/pull/10715))
+
+### Patch Changes
+
+- Add method/url to error message on aborted `query`/`queryRoute` calls ([#10793](https://github.com/remix-run/react-router/pull/10793))
+- Fix a race-condition with loader/action-thrown errors on `route.lazy` routes ([#10778](https://github.com/remix-run/react-router/pull/10778))
+- Fix type for `actionResult` on the arguments object passed to `shouldRevalidate` ([#10779](https://github.com/remix-run/react-router/pull/10779))
+
+## 1.8.0
+
+### Minor Changes
+
+- Add's a new `redirectDocument()` function which allows users to specify that a redirect from a `loader`/`action` should trigger a document reload (via `window.location`) instead of attempting to navigate to the redirected location via React Router ([#10705](https://github.com/remix-run/react-router/pull/10705))
+
+### Patch Changes
+
+- Fix an issue in `queryRoute` that was not always identifying thrown `Response` instances ([#10717](https://github.com/remix-run/react-router/pull/10717))
+- Ensure hash history always includes a leading slash on hash pathnames ([#10753](https://github.com/remix-run/react-router/pull/10753))
+
+## 1.7.2
+
+### Patch Changes
+
+- Trigger an error if a `defer` promise resolves/rejects with `undefined` in order to match the behavior of loaders and actions which must return a value or `null` ([#10690](https://github.com/remix-run/react-router/pull/10690))
+- Properly handle fetcher redirects interrupted by normal navigations ([#10674](https://github.com/remix-run/react-router/pull/10674), [#10709](https://github.com/remix-run/react-router/pull/10709))
+- Initial-load fetchers should not automatically revalidate on GET navigations ([#10688](https://github.com/remix-run/react-router/pull/10688))
+- Enhance the return type of `Route.lazy` to prohibit returning an empty object ([#10634](https://github.com/remix-run/react-router/pull/10634))
+
+## 1.7.1
+
+### Patch Changes
+
+- Fix issues with reused blockers on subsequent navigations ([#10656](https://github.com/remix-run/react-router/pull/10656))
+
+## 1.7.0
+
+### Minor Changes
+
+- Add support for `application/json` and `text/plain` encodings for `router.navigate`/`router.fetch` submissions. To leverage these encodings, pass your data in a `body` parameter and specify the desired `formEncType`: ([#10413](https://github.com/remix-run/react-router/pull/10413))
+
+  ```js
+  // By default, the encoding is "application/x-www-form-urlencoded"
+  router.navigate("/", {
+    formMethod: "post",
+    body: { key: "value" },
+  });
+
+  async function action({ request }) {
+    // await request.formData() => FormData instance with entry [key=value]
+  }
+  ```
+
+  ```js
+  // Pass `formEncType` to opt-into a different encoding (json)
+  router.navigate("/", {
+    formMethod: "post",
+    formEncType: "application/json",
+    body: { key: "value" },
+  });
+
+  async function action({ request }) {
+    // await request.json() => { key: "value" }
+  }
+  ```
+
+  ```js
+  // Pass `formEncType` to opt-into a different encoding (text)
+  router.navigate("/", {
+    formMethod: "post",
+    formEncType: "text/plain",
+    body: "Text submission",
+  });
+
+  async function action({ request }) {
+    // await request.text() => "Text submission"
+  }
+  ```
+
+### Patch Changes
+
+- Call `window.history.pushState/replaceState` before updating React Router state (instead of after) so that `window.location` matches `useLocation` during synchronous React 17 rendering ([#10448](https://github.com/remix-run/react-router/pull/10448))
+  - ⚠️ However, generally apps should not be relying on `window.location` and should always reference `useLocation` when possible, as `window.location` will not be in sync 100% of the time (due to `popstate` events, concurrent mode, etc.)
+- Strip `basename` from the `location` provided to `<ScrollRestoration getKey>` to match the `useLocation` behavior ([#10550](https://github.com/remix-run/react-router/pull/10550))
+- Avoid calling `shouldRevalidate` for fetchers that have not yet completed a data load ([#10623](https://github.com/remix-run/react-router/pull/10623))
+- Fix `unstable_useBlocker` key issues in `StrictMode` ([#10573](https://github.com/remix-run/react-router/pull/10573))
+- Upgrade `typescript` to 5.1 ([#10581](https://github.com/remix-run/react-router/pull/10581))
+
+## 1.6.3
+
+### Patch Changes
+
+- Allow fetcher revalidations to complete if submitting fetcher is deleted ([#10535](https://github.com/remix-run/react-router/pull/10535))
+- Re-throw `DOMException` (`DataCloneError`) when attempting to perform a `PUSH` navigation with non-serializable state. ([#10427](https://github.com/remix-run/react-router/pull/10427))
+- Ensure revalidations happen when hash is present ([#10516](https://github.com/remix-run/react-router/pull/10516))
+- upgrade jest and jsdom ([#10453](https://github.com/remix-run/react-router/pull/10453))
+
+## 1.6.2
+
+### Patch Changes
+
+- Fix HMR-driven error boundaries by properly reconstructing new routes and `manifest` in `\_internalSetRoutes` ([#10437](https://github.com/remix-run/react-router/pull/10437))
+- Fix bug where initial data load would not kick off when hash is present ([#10493](https://github.com/remix-run/react-router/pull/10493))
+
+## 1.6.1
+
+### Patch Changes
+
+- Fix `basename` handling when navigating without a path ([#10433](https://github.com/remix-run/react-router/pull/10433))
+- "Same hash" navigations no longer re-run loaders to match browser behavior (i.e. `/path#hash -> /path#hash`) ([#10408](https://github.com/remix-run/react-router/pull/10408))
+
+## 1.6.0
+
+### Minor Changes
+
+- Enable relative routing in the `@remix-run/router` when providing a source route ID from which the path is relative to: ([#10336](https://github.com/remix-run/react-router/pull/10336))
+
+  - Example: `router.navigate("../path", { fromRouteId: "some-route" })`.
+  - This also applies to `router.fetch` which already receives a source route ID
+
+- Introduce a new `@remix-run/router` `future.v7_prependBasename` flag to enable `basename` prefixing to all paths coming into `router.navigate` and `router.fetch`.
+
+  - Previously the `basename` was prepended in the React Router layer, but now that relative routing is being handled by the router we need prepend the `basename` _after_ resolving any relative paths
+  - This also enables `basename` support in `useFetcher` as well
+
+### Patch Changes
+
+- Enhance `LoaderFunction`/`ActionFunction` return type to prevent `undefined` from being a valid return value ([#10267](https://github.com/remix-run/react-router/pull/10267))
+- Ensure proper 404 error on `fetcher.load` call to a route without a `loader` ([#10345](https://github.com/remix-run/react-router/pull/10345))
+- Deprecate the `createRouter` `detectErrorBoundary` option in favor of the new `mapRouteProperties` option for converting a framework-agnostic route to a framework-aware route. This allows us to set more than just the `hasErrorBoundary` property during route pre-processing, and is now used for mapping `Component -> element` and `ErrorBoundary -> errorElement` in `react-router`. ([#10287](https://github.com/remix-run/react-router/pull/10287))
+- Fixed a bug where fetchers were incorrectly attempting to revalidate on search params changes or routing to the same URL (using the same logic for route `loader` revalidations). However, since fetchers have a static href, they should only revalidate on `action` submissions or `router.revalidate` calls. ([#10344](https://github.com/remix-run/react-router/pull/10344))
+- Decouple `AbortController` usage between revalidating fetchers and the thing that triggered them such that the unmount/deletion of a revalidating fetcher doesn't impact the ongoing triggering navigation/revalidation ([#10271](https://github.com/remix-run/react-router/pull/10271))
+
+## 1.5.0
+
+### Minor Changes
+
+- Added support for [**Future Flags**](https://reactrouter.com/v6/guides/api-development-strategy) in React Router. The first flag being introduced is `future.v7_normalizeFormMethod` which will normalize the exposed `useNavigation()/useFetcher()` `formMethod` fields as uppercase HTTP methods to align with the `fetch()` behavior. ([#10207](https://github.com/remix-run/react-router/pull/10207))
+
+  - When `future.v7_normalizeFormMethod === false` (default v6 behavior),
+    - `useNavigation().formMethod` is lowercase
+    - `useFetcher().formMethod` is lowercase
+  - When `future.v7_normalizeFormMethod === true`:
+    - `useNavigation().formMethod` is uppercase
+    - `useFetcher().formMethod` is uppercase
+
+### Patch Changes
+
+- Provide fetcher submission to `shouldRevalidate` if the fetcher action redirects ([#10208](https://github.com/remix-run/react-router/pull/10208))
+- Properly handle `lazy()` errors during router initialization ([#10201](https://github.com/remix-run/react-router/pull/10201))
+- Remove `instanceof` check for `DeferredData` to be resilient to ESM/CJS boundaries in SSR bundling scenarios ([#10247](https://github.com/remix-run/react-router/pull/10247))
+- Update to latest `@remix-run/web-fetch@4.3.3` ([#10216](https://github.com/remix-run/react-router/pull/10216))
+
+## 1.4.0
+
+### Minor Changes
+
+- **Introducing Lazy Route Modules!** ([#10045](https://github.com/remix-run/react-router/pull/10045))
+
+  In order to keep your application bundles small and support code-splitting of your routes, we've introduced a new `lazy()` route property. This is an async function that resolves the non-route-matching portions of your route definition (`loader`, `action`, `element`/`Component`, `errorElement`/`ErrorBoundary`, `shouldRevalidate`, `handle`).
+
+  Lazy routes are resolved on initial load and during the `loading` or `submitting` phase of a navigation or fetcher call. You cannot lazily define route-matching properties (`path`, `index`, `children`) since we only execute your lazy route functions after we've matched known routes.
+
+  Your `lazy` functions will typically return the result of a dynamic import.
+
+  ```jsx
+  // In this example, we assume most folks land on the homepage so we include that
+  // in our critical-path bundle, but then we lazily load modules for /a and /b so
+  // they don't load until the user navigates to those routes
+  let routes = createRoutesFromElements(
+    <Route path="/" element={<Layout />}>
+      <Route index element={<Home />} />
+      <Route path="a" lazy={() => import("./a")} />
+      <Route path="b" lazy={() => import("./b")} />
+    </Route>
+  );
+  ```
+
+  Then in your lazy route modules, export the properties you want defined for the route:
+
+  ```jsx
+  export async function loader({ request }) {
+    let data = await fetchData(request);
+    return json(data);
+  }
+
+  // Export a `Component` directly instead of needing to create a React Element from it
+  export function Component() {
+    let data = useLoaderData();
+
+    return (
+      <>
+        <h1>You made it!</h1>
+        <p>{data}</p>
+      </>
+    );
+  }
+
+  // Export an `ErrorBoundary` directly instead of needing to create a React Element from it
+  export function ErrorBoundary() {
+    let error = useRouteError();
+    return isRouteErrorResponse(error) ? (
+      <h1>
+        {error.status} {error.statusText}
+      </h1>
+    ) : (
+      <h1>{error.message || error}</h1>
+    );
+  }
+  ```
+
+  An example of this in action can be found in the [`examples/lazy-loading-router-provider`](https://github.com/remix-run/react-router/tree/main/examples/lazy-loading-router-provider) directory of the repository.
+
+  🙌 Huge thanks to @rossipedia for the [Initial Proposal](https://github.com/remix-run/react-router/discussions/9826) and [POC Implementation](https://github.com/remix-run/react-router/pull/9830).
+
+### Patch Changes
+
+- Fix `generatePath` incorrectly applying parameters in some cases ([#10078](https://github.com/remix-run/react-router/pull/10078))
+
+## 1.3.3
+
+### Patch Changes
+
+- Correctly perform a hard redirect for same-origin absolute URLs outside of the router `basename` ([#10076](https://github.com/remix-run/react-router/pull/10076))
+- Ensure status code and headers are maintained for `defer` loader responses in `createStaticHandler`'s `query()` method ([#10077](https://github.com/remix-run/react-router/pull/10077))
+- Change `invariant` to an `UNSAFE_invariant` export since it's only intended for internal use ([#10066](https://github.com/remix-run/react-router/pull/10066))
+- Add internal API for custom HMR implementations ([#9996](https://github.com/remix-run/react-router/pull/9996))
+
+## 1.3.2
+
+### Patch Changes
+
+- Remove inaccurate console warning for POP navigations and update active blocker logic ([#10030](https://github.com/remix-run/react-router/pull/10030))
+- Only check for differing origin on absolute URL redirects ([#10033](https://github.com/remix-run/react-router/pull/10033))
+
+## 1.3.1
+
+### Patch Changes
+
+- Fixes 2 separate issues for revalidating fetcher `shouldRevalidate` calls ([#9948](https://github.com/remix-run/react-router/pull/9948))
+  - The `shouldRevalidate` function was only being called for _explicit_ revalidation scenarios (after a mutation, manual `useRevalidator` call, or an `X-Remix-Revalidate` header used for cookie setting in Remix). It was not properly being called on _implicit_ revalidation scenarios that also apply to navigation `loader` revalidation, such as a change in search params or clicking a link for the page we're already on. It's now correctly called in those additional scenarios.
+  - The parameters being passed were incorrect and inconsistent with one another since the `current*`/`next*` parameters reflected the static `fetcher.load` URL (and thus were identical). Instead, they should have reflected the the navigation that triggered the revalidation (as the `form*` parameters did). These parameters now correctly reflect the triggering navigation.
+- Respect `preventScrollReset` on `<fetcher.Form>` ([#9963](https://github.com/remix-run/react-router/pull/9963))
+- Do not short circuit on hash change only mutation submissions ([#9944](https://github.com/remix-run/react-router/pull/9944))
+- Remove `instanceof` check from `isRouteErrorResponse` to avoid bundling issues on the server ([#9930](https://github.com/remix-run/react-router/pull/9930))
+- Fix navigation for hash routers on manual URL changes ([#9980](https://github.com/remix-run/react-router/pull/9980))
+- Detect when a `defer` call only contains critical data and remove the `AbortController` ([#9965](https://github.com/remix-run/react-router/pull/9965))
+- Send the name as the value when url-encoding `File` `FormData` entries ([#9867](https://github.com/remix-run/react-router/pull/9867))
+
+## 1.3.0
+
+### Minor Changes
+
+- Added support for navigation blocking APIs ([#9709](https://github.com/remix-run/react-router/pull/9709))
+- Expose deferred information from `createStaticHandler` ([#9760](https://github.com/remix-run/react-router/pull/9760))
+
+### Patch Changes
+
+- Improved absolute redirect url detection in actions/loaders ([#9829](https://github.com/remix-run/react-router/pull/9829))
+- Fix URL creation with memory histories ([#9814](https://github.com/remix-run/react-router/pull/9814))
+- Fix `generatePath` when optional params are present ([#9764](https://github.com/remix-run/react-router/pull/9764))
+- Fix scroll reset if a submission redirects ([#9886](https://github.com/remix-run/react-router/pull/9886))
+- Fix 404 bug with same-origin absolute redirects ([#9913](https://github.com/remix-run/react-router/pull/9913))
+- Support `OPTIONS` requests in `staticHandler.queryRoute` ([#9914](https://github.com/remix-run/react-router/pull/9914))
+
+## 1.2.1
+
+### Patch Changes
+
+- Include submission info in `shouldRevalidate` on action redirects ([#9777](https://github.com/remix-run/react-router/pull/9777), [#9782](https://github.com/remix-run/react-router/pull/9782))
+- Reset `actionData` on action redirect to current location ([#9772](https://github.com/remix-run/react-router/pull/9772))
+
+## 1.2.0
+
+### Minor Changes
+
+- Remove `unstable_` prefix from `createStaticHandler`/`createStaticRouter`/`StaticRouterProvider` ([#9738](https://github.com/remix-run/react-router/pull/9738))
+
+### Patch Changes
+
+- Fix explicit `replace` on submissions and `PUSH` on submission to new paths ([#9734](https://github.com/remix-run/react-router/pull/9734))
+- Fix a few bugs where loader/action data wasn't properly cleared on errors ([#9735](https://github.com/remix-run/react-router/pull/9735))
+- Prevent `useLoaderData` usage in `errorElement` ([#9735](https://github.com/remix-run/react-router/pull/9735))
+- Skip initial scroll restoration for SSR apps with `hydrationData` ([#9664](https://github.com/remix-run/react-router/pull/9664))
+
+## 1.1.0
+
+This release introduces support for [Optional Route Segments](https://github.com/remix-run/react-router/issues/9546). Now, adding a `?` to the end of any path segment will make that entire segment optional. This works for both static segments and dynamic parameters.
+
+**Optional Params Examples**
+
+- Path `lang?/about` will match:
+  - `/:lang/about`
+  - `/about`
+- Path `/multistep/:widget1?/widget2?/widget3?` will match:
+  - `/multistep`
+  - `/multistep/:widget1`
+  - `/multistep/:widget1/:widget2`
+  - `/multistep/:widget1/:widget2/:widget3`
+
+**Optional Static Segment Example**
+
+- Path `/home?` will match:
+  - `/`
+  - `/home`
+- Path `/fr?/about` will match:
+  - `/about`
+  - `/fr/about`
+
+### Minor Changes
+
+- Allows optional routes and optional static segments ([#9650](https://github.com/remix-run/react-router/pull/9650))
+
+### Patch Changes
+
+- Stop incorrectly matching on partial named parameters, i.e. `<Route path="prefix-:param">`, to align with how splat parameters work. If you were previously relying on this behavior then it's recommended to extract the static portion of the path at the `useParams` call site: ([#9506](https://github.com/remix-run/react-router/pull/9506))
+
+```jsx
+// Old behavior at URL /prefix-123
+<Route path="prefix-:id" element={<Comp /> }>
+
+function Comp() {
+  let params = useParams(); // { id: '123' }
+  let id = params.id; // "123"
+  ...
+}
+
+// New behavior at URL /prefix-123
+<Route path=":id" element={<Comp /> }>
+
+function Comp() {
+  let params = useParams(); // { id: 'prefix-123' }
+  let id = params.id.replace(/^prefix-/, ''); // "123"
+  ...
 }
 ```
 
-Allow typeAnnotations for yield expressions ([#174](https://github.com/babel/babylon/pull/174))) (Daniel Tschinder)
+- Persist `headers` on `loader` `request`'s after SSR document `action` request ([#9721](https://github.com/remix-run/react-router/pull/9721))
+- Fix requests sent to revalidating loaders so they reflect a GET request ([#9660](https://github.com/remix-run/react-router/pull/9660))
+- Fix issue with deeply nested optional segments ([#9727](https://github.com/remix-run/react-router/pull/9727))
+- GET forms now expose a submission on the loading navigation ([#9695](https://github.com/remix-run/react-router/pull/9695))
+- Fix error boundary tracking for multiple errors bubbling to the same boundary ([#9702](https://github.com/remix-run/react-router/pull/9702))
 
-```js
-function *foo() {
-  const x = (yield 5: any);
-}
-```
+## 1.0.5
 
-### :nail_care: Polish
+### Patch Changes
 
-Annotate more errors with expected token ([#172](https://github.com/babel/babylon/pull/172))) (Moti Zilberman)
+- Fix requests sent to revalidating loaders so they reflect a `GET` request ([#9680](https://github.com/remix-run/react-router/pull/9680))
+- Remove `instanceof Response` checks in favor of `isResponse` ([#9690](https://github.com/remix-run/react-router/pull/9690))
+- Fix `URL` creation in Cloudflare Pages or other non-browser-environments ([#9682](https://github.com/remix-run/react-router/pull/9682), [#9689](https://github.com/remix-run/react-router/pull/9689))
+- Add `requestContext` support to static handler `query`/`queryRoute` ([#9696](https://github.com/remix-run/react-router/pull/9696))
+  - Note that the unstable API of `queryRoute(path, routeId)` has been changed to `queryRoute(path, { routeId, requestContext })`
 
-```js
-// Unexpected token, expected ; (1:6)
-{ set 1 }
-```
+## 1.0.4
 
-### :house: Internal
+### Patch Changes
 
-Remove kcheck ([#173](https://github.com/babel/babylon/pull/173)))  (Daniel Tschinder)
+- Throw an error if an `action`/`loader` function returns `undefined` as revalidations need to know whether the loader has previously been executed. `undefined` also causes issues during SSR stringification for hydration. You should always ensure you `loader`/`action` returns a value, and you may return `null` if you don't wish to return anything. ([#9511](https://github.com/remix-run/react-router/pull/9511))
+- Properly handle redirects to external domains ([#9590](https://github.com/remix-run/react-router/pull/9590), [#9654](https://github.com/remix-run/react-router/pull/9654))
+- Preserve the HTTP method on 307/308 redirects ([#9597](https://github.com/remix-run/react-router/pull/9597))
+- Support `basename` in static data routers ([#9591](https://github.com/remix-run/react-router/pull/9591))
+- Enhanced `ErrorResponse` bodies to contain more descriptive text in internal 403/404/405 scenarios
 
-Also run flow, linting, babel tests on separate instances (add back node 0.10)
+## 1.0.3
 
-## v6.11.6 (2016-10-12)
+### Patch Changes
 
-### :bug: Bug Fix/Regression
+- Fix hrefs generated when using `createHashRouter` ([#9409](https://github.com/remix-run/react-router/pull/9409))
+- fix encoding/matching issues with special chars ([#9477](https://github.com/remix-run/react-router/pull/9477), [#9496](https://github.com/remix-run/react-router/pull/9496))
+- Support `basename` and relative routing in `loader`/`action` redirects ([#9447](https://github.com/remix-run/react-router/pull/9447))
+- Ignore pathless layout routes when looking for proper submission `action` function ([#9455](https://github.com/remix-run/react-router/pull/9455))
+- properly support `index` routes with a `path` in `useResolvedPath` ([#9486](https://github.com/remix-run/react-router/pull/9486))
+- Add UMD build for `@remix-run/router` ([#9446](https://github.com/remix-run/react-router/pull/9446))
+- fix `createURL` in local file execution in Firefox ([#9464](https://github.com/remix-run/react-router/pull/9464))
+- Updates to `unstable_createStaticHandler` for incorporating into Remix ([#9482](https://github.com/remix-run/react-router/pull/9482), [#9465](https://github.com/remix-run/react-router/pull/9465))
 
-Fix crash when exporting with destructuring and sparse array ([#170](https://github.com/babel/babylon/pull/170)) (Jeroen Engels)
+## 1.0.2
 
-```js
-// was failing with `Cannot read property 'type' of null` because of null identifiers
-export const { foo: [ ,, qux7 ] } = bar;
-```
+### Patch Changes
 
-## v6.11.5 (2016-10-12)
+- Reset `actionData` after a successful action redirect ([#9334](https://github.com/remix-run/react-router/pull/9334))
+- Update `matchPath` to avoid false positives on dash-separated segments ([#9300](https://github.com/remix-run/react-router/pull/9300))
+- If an index route has children, it will result in a runtime error. We have strengthened our `RouteObject`/`RouteProps` types to surface the error in TypeScript. ([#9366](https://github.com/remix-run/react-router/pull/9366))
 
-### :eyeglasses: Spec Compliance
+## 1.0.1
 
-Fix: Check for duplicate named exports in exported destructuring assignments ([#144](https://github.com/babel/babylon/pull/144)) (Kai Cataldo)
+### Patch Changes
 
-```js
-// `foo` has already been exported. Exported identifiers must be unique. (2:20)
-export function foo() {};
-export const { a: [{foo}] } = bar;
-```
+- Preserve state from `initialEntries` ([#9288](https://github.com/remix-run/react-router/pull/9288))
+- Preserve `?index` for fetcher get submissions to index routes ([#9312](https://github.com/remix-run/react-router/pull/9312))
 
-Fix: Check for duplicate named exports in exported rest elements/properties ([#164](https://github.com/babel/babylon/pull/164)) (Kai Cataldo)
+## 1.0.0
 
-```js
-// `foo` has already been exported. Exported identifiers must be unique. (2:22)
-export const foo = 1;
-export const [bar, ...foo] = baz;
-```
+This is the first stable release of `@remix-run/router`, which provides all the underlying routing and data loading/mutation logic for `react-router`. You should _not_ be using this package directly unless you are authoring a routing library similar to `react-router`.
 
-### :bug: Bug Fix
+For an overview of the features provided by `react-router`, we recommend you go check out the [docs](https://reactrouter.com), especially the [feature overview](https://reactrouter.com/en/6.4.0/start/overview) and the [tutorial](https://reactrouter.com/en/6.4.0/start/tutorial).
 
-Fix: Allow identifier `async` for default param in arrow expression ([#165](https://github.com/babel/babylon/pull/165)) (Kai Cataldo)
-
-```js
-// this is ok now
-const test = ({async = true}) => {};
-```
-
-### :nail_care: Polish
-
-Babylon will now print out the token it's expecting if there's a `SyntaxError` ([#150](https://github.com/babel/babylon/pull/150)) (Daniel Tschinder)
-
-```bash
-# So in the case of a missing ending curly (`}`)
-Module build failed: SyntaxError: Unexpected token, expected } (30:0)
-  28 |   }
-  29 |
-> 30 |
-     | ^
-```
-
-## v6.11.4 (2016-10-03)
-
-Temporary rollback for erroring on trailing comma with spread (#154) (Henry Zhu)
-
-## v6.11.3 (2016-10-01)
-
-### :eyeglasses: Spec Compliance
-
-Add static errors for object rest (#149) ([@danez](https://github.com/danez))
-
-> https://github.com/sebmarkbage/ecmascript-rest-spread
-
-Object rest copies the *rest* of properties from the right hand side `obj` starting from the left to right.
-
-```js
-let { x, y, ...z } =  { x: 1, y: 2, z: 3 };
-// x = 1
-// y = 2
-// z = { z: 3 }
-```
-
-#### New Syntax Errors:
-
-**SyntaxError**: The rest element has to be the last element when destructuring (1:10)
-```bash
-> 1 | let { ...x, y, z } = { x: 1, y: 2, z: 3};
-    |           ^
-# Previous behavior:
-# x = { x: 1, y: 2, z: 3 }
-# y = 2
-# z = 3
-```
-
-Before, this was just a more verbose way of shallow copying `obj` since it doesn't actually do what you think.
-
-**SyntaxError**: Cannot have multiple rest elements when destructuring (1:13)
-
-```bash
-> 1 | let { x, ...y, ...z } = { x: 1, y: 2, z: 3};
-    |              ^
-# Previous behavior:
-# x = 1
-# y = { y: 2, z: 3 }
-# z = { y: 2, z: 3 }
-```
-
-Before y and z would just be the same value anyway so there is no reason to need to have both.
-
-**SyntaxError**: A trailing comma is not permitted after the rest element (1:16)
-
-```js
-let { x, y, ...z, } = obj;
-```
-
-The rationale for this is that the use case for trailing comma is that you can add something at the end without affecting the line above. Since a RestProperty always has to be the last property it doesn't make sense.
-
----
-
-get / set are valid property names in default assignment (#142) ([@jezell](https://github.com/jezell))
-
-```js
-// valid
-function something({ set = null, get = null }) {}
-```
-
-## v6.11.2 (2016-09-23)
-
-### Bug Fix
-
-- [#139](https://github.com/babel/babylon/issues/139) Don't do the duplicate check if not an identifier (#140) @hzoo
-
-```js
-// regression with duplicate export check
-SyntaxError: ./typography.js: `undefined` has already been exported. Exported identifiers must be unique. (22:13)
-  20 |
-  21 | export const { rhythm } = typography;
-> 22 | export const { TypographyStyle } = typography
-```
-
-Bail out for now, and make a change to account for destructuring in the next release.
-
-## 6.11.1 (2016-09-22)
-
-### Bug Fix
-- [#137](https://github.com/babel/babylon/pull/137) - Fix a regression with duplicate exports - it was erroring on all keys in `Object.prototype`. @danez
-
-```javascript
-export toString from './toString';
-```
-
-```bash
-`toString` has already been exported. Exported identifiers must be unique. (1:7)
-> 1 | export toString from './toString';
-    |        ^
-  2 |
-```
-
-## 6.11.0 (2016-09-22)
-
-### Spec Compliance (will break CI)
-
-- Disallow duplicate named exports ([#107](https://github.com/babel/babylon/pull/107)) @kaicataldo
-
-```js
-// Only one default export allowed per module. (2:9)
-export default function() {};
-export { foo as default };
-
-// Only one default export allowed per module. (2:0)
-export default {};
-export default function() {};
-
-// `Foo` has already been exported. Exported identifiers must be unique. (2:0)
-export { Foo };
-export class Foo {};
-```
-
-### New Feature (Syntax)
-
-- Add support for computed class property names ([#121](https://github.com/babel/babylon/pull/121)) @motiz88
-
-```js
-// AST
-interface ClassProperty <: Node {
-  type: "ClassProperty";
-  key: Identifier;
-  value: Expression;
-  computed: boolean; // added
-}
-```
-
-```js
-// with "plugins": ["classProperties"]
-class Foo {
-  [x]
-  ['y']
-}
-
-class Bar {
-  [p]
-  [m] () {}
-}
- ```
-
-### Bug Fix
-
-- Fix `static` property falling through in the declare class Flow AST ([#135](https://github.com/babel/babylon/pull/135)) @danharper
-
-```js
-declare class X {
-    a: number;
-    static b: number; // static
-    c: number; // this was being marked as static in the AST as well
-}
-```
-
-### Polish
-
-- Rephrase "assigning/binding to rvalue" errors to include context ([#119](https://github.com/babel/babylon/pull/119)) @motiz88
-
-```js
-// Used to error with:
-// SyntaxError: Assigning to rvalue (1:0)
-
-// Now:
-// Invalid left-hand side in assignment expression (1:0)
-3 = 4
-
-// Invalid left-hand side in for-in statement (1:5)
-for (+i in {});
-```
-
-### Internal
-
-- Fix call to `this.parseMaybeAssign` with correct arguments ([#133](https://github.com/babel/babylon/pull/133)) @danez
-- Add semver note to changelog ([#131](https://github.com/babel/babylon/pull/131)) @hzoo
-
-## 6.10.0 (2016-09-19)
-
-> We plan to include some spec compliance bugs in patch versions. An example was the multiple default exports issue.
-
-### Spec Compliance
-
-* Implement ES2016 check for simple parameter list in strict mode ([#106](https://github.com/babel/babylon/pull/106)) (Timothy Gu)
-
-> It is a Syntax Error if ContainsUseStrict of FunctionBody is true and IsSimpleParameterList of FormalParameters is false. https://tc39.github.io/ecma262/2016/#sec-function-definitions-static-semantics-early-errors
-
-More Context: [tc39-notes](https://github.com/rwaldron/tc39-notes/blob/master/es7/2015-07/july-29.md#611-the-scope-of-use-strict-with-respect-to-destructuring-in-parameter-lists)
-
-For example:
-
-```js
-// this errors because it uses destructuring and default parameters
-// in a function with a "use strict" directive
-function a([ option1, option2 ] = []) {
-  "use strict";
-}
- ```
-
-The solution would be to use a top level "use strict" or to remove the destructuring or default parameters when using a function + "use strict" or to.
-
-### New Feature
-
-* Exact object type annotations for Flow plugin ([#104](https://github.com/babel/babylon/pull/104)) (Basil Hosmer)
-
-Added to flow in https://github.com/facebook/flow/commit/c710c40aa2a115435098d6c0dfeaadb023cd39b8
-
-Looks like:
-
-```js
-var a : {| x: number, y: string |} = { x: 0, y: 'foo' };
-```
-
-### Bug Fixes
-
-* Include `typeParameter` location in `ArrowFunctionExpression` ([#126](https://github.com/babel/babylon/pull/126)) (Daniel Tschinder)
-* Error on invalid flow type annotation with default assignment ([#122](https://github.com/babel/babylon/pull/122)) (Dan Harper)
-* Fix Flow return types on arrow functions ([#124](https://github.com/babel/babylon/pull/124)) (Dan Harper)
-
-### Misc
-
-* Add tests for export extensions ([#127](https://github.com/babel/babylon/pull/127)) (Daniel Tschinder)
-* Fix Contributing guidelines [skip ci] (Daniel Tschinder)
-
-## 6.9.2 (2016-09-09)
-
-The only change is to remove the `babel-runtime` dependency by compiling with Babel's ES2015 loose mode. So using babylon standalone should be smaller.
-
-## 6.9.1 (2016-08-23)
-
-This release contains mainly small bugfixes but also updates babylons default mode to es2017. The features for `exponentiationOperator`, `asyncFunctions` and `trailingFunctionCommas` which previously needed to be activated via plugin are now enabled by default and the plugins are now no-ops.
-
-### Bug Fixes
-
-- Fix issues with default object params in async functions ([#96](https://github.com/babel/babylon/pull/96)) @danez
-- Fix issues with flow-types and async function ([#95](https://github.com/babel/babylon/pull/95)) @danez
-- Fix arrow functions with destructuring, types & default value ([#94](https://github.com/babel/babylon/pull/94)) @danharper
-- Fix declare class with qualified type identifier ([#97](https://github.com/babel/babylon/pull/97)) @danez
-- Remove exponentiationOperator, asyncFunctions, trailingFunctionCommas plugins and enable them by default ([#98](https://github.com/babel/babylon/pull/98)) @danez
-
-## 6.9.0 (2016-08-16)
-
-### New syntax support
-
-- Add JSX spread children ([#42](https://github.com/babel/babylon/pull/42)) @calebmer
-
-(Be aware that React is not going to support this syntax)
-
-```js
-<div>
-  {...todos.map(todo => <Todo key={todo.id} todo={todo}/>)}
-</div>
-```
-
-- Add support for declare module.exports ([#72](https://github.com/babel/babylon/pull/72)) @danez
-
-```js
-declare module "foo" {
-  declare module.exports: {}
-}
-```
-
-### New Features
-
-- If supplied, attach filename property to comment node loc. ([#80](https://github.com/babel/babylon/pull/80)) @divmain
-- Add identifier name to node loc field ([#90](https://github.com/babel/babylon/pull/90)) @kittens
-
-### Bug Fixes
-
-- Fix exponential operator to behave according to spec ([#75](https://github.com/babel/babylon/pull/75)) @danez
-- Fix lookahead to not add comments to arrays which are not cloned ([#76](https://github.com/babel/babylon/pull/76)) @danez
-- Fix accidental fall-through in Flow type parsing. ([#82](https://github.com/babel/babylon/pull/82)) @xiemaisi
-- Only allow declares inside declare module ([#73](https://github.com/babel/babylon/pull/73)) @danez
-- Small fix for parsing type parameter declarations ([#83](https://github.com/babel/babylon/pull/83)) @gabelevi
-- Fix arrow param locations with flow types ([#57](https://github.com/babel/babylon/pull/57)) @danez
-- Fixes SyntaxError position with flow optional type ([#65](https://github.com/babel/babylon/pull/65)) @danez
-
-### Internal
-
-- Add codecoverage to tests @danez
-- Fix tests to not save expected output if we expect the test to fail @danez
-- Make a shallow clone of babel for testing @danez
-- chore(package): update cross-env to version 2.0.0 ([#77](https://github.com/babel/babylon/pull/77)) @greenkeeperio-bot
-- chore(package): update ava to version 0.16.0 ([#86](https://github.com/babel/babylon/pull/86)) @greenkeeperio-bot
-- chore(package): update babel-plugin-istanbul to version 2.0.0 ([#89](https://github.com/babel/babylon/pull/89)) @greenkeeperio-bot
-- chore(package): update nyc to version 8.0.0 ([#88](https://github.com/babel/babylon/pull/88)) @greenkeeperio-bot
-
-## 6.8.4 (2016-07-06)
-
-### Bug Fixes
-
-- Fix the location of params, when flow and default value used ([#68](https://github.com/babel/babylon/pull/68)) @danez
-
-## 6.8.3 (2016-07-02)
-
-### Bug Fixes
-
-- Fix performance regression introduced in 6.8.2 with conditionals ([#63](https://github.com/babel/babylon/pull/63)) @danez
-
-## 6.8.2 (2016-06-24)
-
-### Bug Fixes
-
-- Fix parse error with yielding jsx elements in generators `function* it() { yield <a></a>; }` ([#31](https://github.com/babel/babylon/pull/31)) @eldereal
-- When cloning nodes do not clone its comments ([#24](https://github.com/babel/babylon/pull/24)) @danez
-- Fix parse errors when using arrow functions with an spread element and return type `(...props): void => {}` ([#10](https://github.com/babel/babylon/pull/10)) @danez
-- Fix leading comments added from previous node ([#23](https://github.com/babel/babylon/pull/23)) @danez
-- Fix parse errors with flow's optional arguments `(arg?) => {}` ([#19](https://github.com/babel/babylon/pull/19)) @danez
-- Support negative numeric type literals @kittens
-- Remove line terminator restriction after await keyword @kittens
-- Remove grouped type arrow restriction as it seems flow no longer has it @kittens
-- Fix parse error with generic methods that have the name `get` or `set` `class foo { get() {} }` ([#55](https://github.com/babel/babylon/pull/55)) @vkurchatkin
-- Fix parse error with arrow functions that have flow type parameter declarations `<T>(x: T): T => x;` ([#54](https://github.com/babel/babylon/pull/54)) @gabelevi
-
-### Documentation
-
-- Document AST differences from ESTree ([#41](https://github.com/babel/babylon/pull/41)) @nene
-- Move ast spec from babel/babel ([#46](https://github.com/babel/babylon/pull/46)) @hzoo
-
-### Internal
-
-- Enable skipped tests ([#16](https://github.com/babel/babylon/pull/16)) @danez
-- Add script to test latest version of babylon with babel ([#21](https://github.com/babel/babylon/pull/21)) @danez
-- Upgrade test runner ava @kittens
-- Add missing generate-identifier-regex script @kittens
-- Rename parser context types @kittens
-- Add node v6 to travis testing @hzoo
-- Update to Unicode v9 ([#45](https://github.com/babel/babylon/pull/45)) @mathiasbynens
-
-## 6.8.1 (2016-06-06)
-
-### New Feature
-
-- Parse type parameter declarations with defaults like `type Foo<T = string> = T`
-
-### Bug Fixes
-- Type parameter declarations need 1 or more type parameters.
-- The existential type `*` is not a valid type parameter.
-- The existential type `*` is a primary type
-
-### Spec Compliance
-- The param list for type parameter declarations now consists of `TypeParameter` nodes
-- New `TypeParameter` AST Node (replaces using the `Identifier` node before)
-
-```
-interface TypeParameter <: Node {
-  bound: TypeAnnotation;
-  default: TypeAnnotation;
-  name: string;
-  variance: "plus" | "minus";
-}
-```
-
-## 6.8.0 (2016-05-02)
-
-#### New Feature
-
-##### Parse Method Parameter Decorators ([#12](https://github.com/babel/babylon/pull/12))
-
-> [Method Parameter Decorators](https://goo.gl/8MmCMG) is now a TC39 [stage 0 proposal](https://github.com/tc39/ecma262/blob/master/stage0.md).
-
-Examples:
-
-```js
-class Foo {
-  constructor(@foo() x, @bar({ a: 123 }) @baz() y) {}
-}
-
-export default function func(@foo() x, @bar({ a: 123 }) @baz() y) {}
-
-var obj = {
-  method(@foo() x, @bar({ a: 123 }) @baz() y) {}
-};
-```
-
-##### Parse for-await statements (w/ `asyncGenerators` plugin) ([#17](https://github.com/babel/babylon/pull/17))
-
-There is also a new node type, `ForAwaitStatement`.
-
-> [Async generators and for-await](https://github.com/tc39/proposal-async-iteration) are now a [stage 2 proposal](https://github.com/tc39/ecma262#current-proposals).
-
-Example:
-
-```js
-async function f() {
-  for await (let x of y);
-}
-```
+For an overview of the features provided by `@remix-run/router`, please check out the [`README`](./README.md).
