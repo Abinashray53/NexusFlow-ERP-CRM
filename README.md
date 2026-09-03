@@ -1,3 +1,3 @@
-# axios // env
+# caniuse-lite
 
-The `data.js` file is updated automatically when the package version is upgrading. Please do not edit it manually.
+A smaller version of caniuse-db, with only the essentials!
