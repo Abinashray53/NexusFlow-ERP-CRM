@@ -1,136 +1,330 @@
-var SPACE = /\s/
+'use strict';
 
-function flatten(array) {
-  if (!Array.isArray(array)) return [array]
-  // Iterative flatten: `reduce`+`concat` copies the accumulator on every step,
-  // which is O(n²) once a query resolves to many nodes.
-  var result = []
-  var stack = [array]
-  while (stack.length) {
-    var item = stack.pop()
-    if (Array.isArray(item)) {
-      for (var i = item.length - 1; i >= 0; i--) {
-        stack.push(item[i])
-      }
-    } else {
-      result.push(item)
-    }
-  }
-  return result
+/**
+ * @import {
+ * 	ControlOperator,
+ * 	Env,
+ * 	GlobPattern,
+ * 	ParseEntry,
+ * } from './parse' */
+
+// '<(' is process substitution operator and
+// can be parsed the same as control operator
+var CONTROL = /** @type {const} */ ('(?:') + /** @type {const} */ ([
+	'\\|\\|',
+	'\\&\\&',
+	';;',
+	'\\|\\&',
+	'\\<\\(',
+	'\\<\\<\\<',
+	'>>',
+	'>\\&',
+	'<\\&',
+	'[&;()|<>]'
+]).join(/** @type {const} */ ('|')) + /** @type {const} */ (')');
+var controlRE = new RegExp('^' + CONTROL + '$');
+var META = /** @type {const} */ ('|&;()<> \\t');
+var SINGLE_QUOTE = /** @type {const} */ ('\'([^\']*?)\'');
+var DOUBLE_QUOTE = /** @type {const} */ ('"((\\\\"|[^"])*?)"');
+var hash = /^#$/;
+
+var SQ = /** @type {const} */ ("'");
+var DQ = /** @type {const} */ ('"');
+var DS = /** @type {const} */ ('$');
+
+var TOKEN = '';
+var mult = /** @type {const} */ (0x100000000); // Math.pow(16, 8);
+for (var i = 0; i < 4; i++) {
+	TOKEN += (mult * Math.random()).toString(16);
+}
+var startsWithToken = new RegExp('^' + TOKEN);
+
+/**
+ * @param {string} s
+ * @param {RegExp} r
+ */
+function matchAll(s, r) {
+	var origIndex = r.lastIndex;
+
+	var matches = [];
+	var matchObj;
+
+	while ((matchObj = r.exec(s))) {
+		matches[matches.length] = matchObj;
+		if (r.lastIndex === matchObj.index) {
+			r.lastIndex += 1;
+		}
+	}
+
+	r.lastIndex = origIndex;
+
+	return matches;
 }
 
-function matchQuery(all, query) {
-  var node = { query: query }
-  if (query.indexOf('not ') === 0) {
-    node.not = true
-    query = query.slice(4)
-  }
+/**
+ * @param {Env} env
+ * @param {string} pre
+ * @param {string} key
+ */
+function getVar(env, pre, key) {
+	var r = typeof env === 'function' ? env(key) : env[key];
+	if (typeof r === 'undefined' && key != '') {
+		r = '';
+	} else if (typeof r === 'undefined') {
+		r = '$';
+	}
 
-  for (var name in all) {
-    var type = all[name]
-    var match = query.match(type.regexp)
-    if (match) {
-      node.type = name
-      for (var i = 0; i < type.matches.length; i++) {
-        node[type.matches[i]] = match[i + 1]
-      }
-      return node
-    }
-  }
-
-  node.type = 'unknown'
-  return node
+	if (typeof r === 'object') {
+		return pre + TOKEN + JSON.stringify(r) + TOKEN;
+	}
+	return pre + r;
 }
 
-function pushClause(all, qs, text, compose) {
-  var node = matchQuery(all, text.trim())
-  node.compose = compose
-  qs.push(node)
+/**
+ * @param {string} string
+ * @param {Env} [env]
+ * @param {{ escape?: string, splitUnquoted?: boolean | string }} [opts]
+ * @returns {ParseEntry[]}
+ */
+function parseInternal(string, env, opts) {
+	if (!opts) {
+		opts = {};
+	}
+	var BS = opts.escape || '\\';
+	var ifs = opts.splitUnquoted === true ? ' \t\n' : (typeof opts.splitUnquoted === 'string' ? opts.splitUnquoted : '');
+	var BAREWORD = '(\\' + BS + '[\'"' + META + ']|[^\\s\'"' + META + '])+';
+
+	var chunker = new RegExp([
+		'(' + CONTROL + ')', // control chars
+		'(' + BAREWORD + '|' + DOUBLE_QUOTE + '|' + SINGLE_QUOTE + ')+'
+	].join('|'), 'g');
+
+	var matches = matchAll(string, chunker);
+
+	if (matches.length === 0) {
+		return [];
+	}
+	if (!env) {
+		env = {};
+	}
+
+	var commented = false;
+
+	return matches.map(function (match) {
+		var s = match[0];
+		if (!s || commented) {
+			return void undefined;
+		}
+		if (controlRE.test(s)) {
+			return /** @type {ControlOperator} */ ({ op: s });
+		}
+
+		// Hand-written scanner/parser for Bash quoting rules:
+		//
+		// 1. inside single quotes, all characters are printed literally.
+		// 2. inside double quotes, all characters are printed literally
+		//    except variables prefixed by '$' and backslashes followed by
+		//    either a double quote or another backslash.
+		// 3. outside of any quotes, backslashes are treated as escape
+		//    characters and not printed (unless they are themselves escaped)
+		// 4. quote context can switch mid-token if there is no whitespace
+		//     between the two quote contexts (e.g. all'one'"token" parses as
+		//     "allonetoken")
+		/** @type {string | boolean} */
+		var quote = false;
+		var esc = false;
+		var out = '';
+		/** @type {string[]} */
+		var words = [];
+		var sawQuote = false;
+		/** @type {number | null} */
+		var pendingNw = null;
+		var isGlob = false;
+		/** @type {number} */
+		var i;
+
+		function parseEnvVar() {
+			i += 1;
+			/** @type {number | RegExpMatchArray | null} */
+			var varend;
+			/** @type {string} */
+			var varname;
+			var char = s.charAt(i);
+
+			if (char === '{') {
+				i += 1;
+				if (s.charAt(i) === '}') {
+					throw new Error('Bad substitution: ' + s.slice(i - 2, i + 1));
+				}
+				// match braces by depth so a nested `${` keeps its inner `}` from ending the outer substitution
+				var depth = 1;
+				varend = i;
+				while (depth > 0 && varend < s.length) {
+					if (s.charAt(varend) === '{' && s.charAt(varend - 1) === '$') {
+						depth += 1;
+					} else if (s.charAt(varend) === '}') {
+						depth -= 1;
+					}
+					varend += 1;
+				}
+				if (depth !== 0) {
+					throw new Error('Bad substitution: ' + s.slice(i));
+				}
+				varend -= 1;
+				varname = s.slice(i, varend);
+				i = varend;
+			} else if ((/[*@#?$!_-]/).test(char)) {
+				varname = char;
+				i += 1;
+			} else {
+				var slicedFromI = s.slice(i);
+				varend = slicedFromI.match(/[^\w\d_]/);
+				if (!varend) {
+					varname = slicedFromI;
+					i = s.length;
+				} else {
+					varname = slicedFromI.slice(0, varend.index);
+					i += /** @type {number} */ (varend.index) - 1;
+				}
+			}
+			return getVar(/** @type {NonNullable<typeof env>} */ (env), '', varname);
+		}
+
+		function flushRun() {
+			if (pendingNw === null) {
+				return;
+			}
+			if (pendingNw === 0) {
+				if (out !== '') {
+					words[words.length] = out;
+					out = '';
+				}
+			} else {
+				words[words.length] = out;
+				out = '';
+				for (var fe = 1; fe < pendingNw; fe += 1) {
+					words[words.length] = '';
+				}
+			}
+			pendingNw = null;
+		}
+
+		for (i = 0; i < s.length; i++) {
+			var c = s.charAt(i);
+			if (ifs && c !== DS) {
+				flushRun();
+			}
+			isGlob = isGlob || (!quote && (c === '*' || c === '?'));
+			if (esc) {
+				out += c;
+				esc = false;
+			} else if (quote) {
+				if (c === quote) {
+					quote = false;
+				} else if (quote == SQ) {
+					out += c;
+				} else { // Double quote
+					if (c === BS) {
+						i += 1;
+						c = s.charAt(i);
+						if (c === DQ || c === BS || c === DS) {
+							out += c;
+						} else {
+							out += BS + c;
+						}
+					} else if (c === DS) {
+						out += parseEnvVar();
+					} else {
+						out += c;
+					}
+				}
+			} else if (c === DQ || c === SQ) {
+				quote = c;
+				sawQuote = true;
+			} else if (controlRE.test(c)) {
+				return /** @type {ControlOperator} */ ({ op: s });
+			} else if (hash.test(c)) {
+				commented = true;
+				var commentObj = { comment: string.slice(match.index + i + 1) };
+				if (out.length) {
+					return /** @type {const} */ ([out, commentObj]);
+				}
+				return /** @type {const} */ ([commentObj]);
+			} else if (c === BS) {
+				esc = true;
+			} else if (c === DS) {
+				var value = parseEnvVar();
+				if (!ifs) {
+					out += value;
+				} else {
+					for (var vi = 0; vi < value.length; vi += 1) {
+						var vc = value.charAt(vi);
+						if (ifs.indexOf(vc) < 0) {
+							flushRun();
+							out += vc;
+						} else if (pendingNw === null) {
+							pendingNw = vc === ' ' || vc === '\t' || vc === '\n' ? 0 : 1;
+						} else if (vc !== ' ' && vc !== '\t' && vc !== '\n') {
+							pendingNw += 1;
+						}
+					}
+				}
+			} else {
+				out += c;
+			}
+		}
+
+		if (isGlob) {
+			return /** @type {GlobPattern} */ ({ op: 'glob', pattern: out });
+		}
+
+		if (ifs) {
+			if (pendingNw !== null && pendingNw > 0) {
+				words[words.length] = out;
+				out = '';
+				for (var te = 1; te < pendingNw; te += 1) {
+					words[words.length] = '';
+				}
+			}
+			if (out !== '' || (sawQuote && words.length === 0)) {
+				words[words.length] = out;
+			}
+			return words;
+		}
+
+		return out;
+	}).reduce(function (prev, arg) { // finalize parsed arguments
+		if (typeof arg === 'undefined') {
+			return prev;
+		}
+		/** @type {ParseEntry[]} */ ([]).concat(arg).forEach(function (entry) {
+			prev[prev.length] = entry;
+		});
+		return prev;
+	}, /** @type {ParseEntry[]} */ ([]));
 }
 
-// Splits a query block into clauses on the `\s+and\s+`, `\s+or\s+` and `,\s*`
-// delimiters in a single left-to-right pass. The previous implementation grew
-// a suffix one character at a time and re-tested anchored `\s+…` regexps at
-// every length, which backtracks across whitespace runs and is O(n²) — a
-// small padded query could freeze the event loop for tens of seconds.
-function parseBlock(all, block, qs) {
-  if (block.length === 0) return
-
-  var len = block.length
-  var clauseStart = 0
-  // Compose for the clause currently being read; the leftmost clause is `or`.
-  var compose = 'or'
-  var i = 0
-
-  while (i < len) {
-    var ch = block[i]
-
-    if (ch === ',') {
-      // `,\s*` delimiter. A delimiter at the very start (i === 0) has no left
-      // clause — the original never emits one there.
-      if (i !== 0) pushClause(all, qs, block.slice(clauseStart, i), compose)
-      i++
-      while (i < len && SPACE.test(block[i])) i++
-      compose = 'or'
-      clauseStart = i
-      continue
-    }
-
-    if (SPACE.test(ch)) {
-      // Possible `\s+and\s+` or `\s+or\s+`. Scan the whitespace run once
-      // (linear, no backtracking), then check the following keyword.
-      var q = i
-      while (q < len && SPACE.test(block[q])) q++
-
-      if (
-        q + 3 < len &&
-        (block[q] === 'a' || block[q] === 'A') &&
-        (block[q + 1] === 'n' || block[q + 1] === 'N') &&
-        (block[q + 2] === 'd' || block[q + 2] === 'D') &&
-        SPACE.test(block[q + 3])
-      ) {
-        // The leading `\s+` of `\s+and\s+` absorbs whitespace at the block
-        // start, so a delimiter at i === 0 has no left clause.
-        if (i !== 0) pushClause(all, qs, block.slice(clauseStart, i), compose)
-        var afterAnd = q + 3
-        while (afterAnd < len && SPACE.test(block[afterAnd])) afterAnd++
-        compose = 'and'
-        i = afterAnd
-        clauseStart = afterAnd
-        continue
-      } else if (
-        q + 2 < len &&
-        (block[q] === 'o' || block[q] === 'O') &&
-        (block[q + 1] === 'r' || block[q + 1] === 'R') &&
-        SPACE.test(block[q + 2])
-      ) {
-        if (i !== 0) pushClause(all, qs, block.slice(clauseStart, i), compose)
-        var afterOr = q + 2
-        while (afterOr < len && SPACE.test(block[afterOr])) afterOr++
-        compose = 'or'
-        i = afterOr
-        clauseStart = afterOr
-        continue
-      } else {
-        // Whitespace inside a clause; skip the run and keep reading.
-        i = q
-        continue
-      }
-    }
-
-    i++
-  }
-
-  pushClause(all, qs, block.slice(clauseStart), compose)
-}
-
-module.exports = function parse(all, queries) {
-  if (!Array.isArray(queries)) queries = [queries]
-  return flatten(
-    queries.map(function (block) {
-      var qs = []
-      parseBlock(all, block, qs)
-      return qs
-    })
-  )
-}
+/** @type {typeof import('./parse')} */
+module.exports = function parse(s, env, opts) {
+	var mapped = parseInternal(s, env, opts);
+	if (typeof env !== 'function') {
+		return mapped;
+	}
+	return mapped.reduce(function (acc, s) {
+		if (typeof s === 'object') {
+			acc[acc.length] = s;
+			return acc;
+		}
+		var xs = s.split(RegExp('(' + TOKEN + '.*?' + TOKEN + ')', 'g'));
+		if (xs.length === 1) {
+			acc[acc.length] = xs[0];
+			return acc;
+		}
+		xs.filter(Boolean).forEach(function (x) {
+			acc[acc.length] = startsWithToken.test(x)
+				? JSON.parse(x.split(TOKEN)[1])
+				: x;
+		});
+		return acc;
+	}, /** @type {ParseEntry[]} */ ([]));
+};
