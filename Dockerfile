@@ -2,24 +2,21 @@ FROM node:22-alpine AS build
 
 WORKDIR /app
 
+ARG VITE_API_URL=http://localhost:4000
+ENV VITE_API_URL=$VITE_API_URL
+
 COPY package*.json ./
 RUN npm ci
 
-COPY tsconfig.json ./
-COPY scripts ./scripts
+COPY tsconfig.json tsconfig.node.json vite.config.ts index.html ./
 COPY src ./src
 RUN npm run build
 
-FROM node:22-alpine AS production
+FROM nginx:1.27-alpine AS production
 
-WORKDIR /app
-ENV NODE_ENV=production
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist /usr/share/nginx/html
 
-COPY package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+EXPOSE 80
 
-COPY --from=build /app/dist ./dist
-
-EXPOSE 4000
-
-CMD ["npm", "start"]
+CMD ["nginx", "-g", "daemon off;"]

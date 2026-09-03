@@ -1,4 +1,23 @@
+# Dependencies and generated output
 node_modules/
+**/node_modules/
 dist/
+**/dist/
+
+# Environment and local database files
 .env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite-*
+
+# Tooling, logs, and editor state
 *.log
+npm-debug.log*
+coverage/
+.npm-cache/
+.tmp/
+.DS_Store
+.vscode/*.log
+!.vscode/extensions.json
+!.vscode/tasks.json
