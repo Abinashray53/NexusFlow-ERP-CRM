@@ -1,19 +1,19 @@
-# @babel/helper-module-imports
+# @babel/helper-string-parser
 
-> Babel helper functions for inserting module loads
+> A utility package to parse strings
 
-See our website [@babel/helper-module-imports](https://babeljs.io/docs/babel-helper-module-imports) for more information.
+See our website [@babel/helper-string-parser](https://babeljs.io/docs/babel-helper-string-parser) for more information.
 
 ## Install
 
 Using npm:
 
 ```sh
-npm install --save @babel/helper-module-imports
+npm install --save @babel/helper-string-parser
 ```
 
 or using yarn:
 
 ```sh
-yarn add @babel/helper-module-imports
+yarn add @babel/helper-string-parser
 ```
